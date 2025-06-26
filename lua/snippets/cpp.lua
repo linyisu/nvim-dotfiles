@@ -5,8 +5,7 @@ local s = ls.snippet
 local t = ls.text_node
 local i = ls.insert_node
 
--- 定义 C++ 代码片段
-ls.add_snippets("cpp", {
+return {
 	s("normal", {
 		t({
 			"#include <bits/stdc++.h>",
@@ -537,5 +536,5 @@ ls.add_snippets("cpp", {
 			"    }",
 			"};"
 		})
-	}),
-})
+	})
+}

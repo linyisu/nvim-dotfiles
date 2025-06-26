@@ -6,20 +6,25 @@ return {
 
         -- 插件加载完成后，执行以下配置
         config = function()
-            -- 这里的路径需要根据实际情况调整，假设 snippets 文件夹在同级
-            -- require("snippets.cpp")  -- 加载 C++ 语言片段
-            -- require("snippets.fast")  -- 加载便携代码片段
-            require("snippets.generated_snippets1")  -- 加载所有语言片段
-            require("snippets.generated_snippets2")  -- 加载片段
-            require("snippets.generated_snippets3")  -- 加载片段
-            require("snippets.generated_snippets4")  -- 加载片段
-            require("snippets.generated_snippets5")  -- 加载片段
-            require("snippets.generated_snippets6")  -- 加载片段
-            require("snippets.generated_snippets7")  -- 加载片段
-            require("snippets.generated_snippets8")  -- 加载片段
-            require("snippets.generated_snippets9")  -- 加载片段
-            require("snippets.generated_snippets10")  -- 加载片段
+            -- 使用统一的 snippets 管理器加载所有代码片段
+            local snippet_manager = require("snippets")
+            snippet_manager.load_all_snippets()
+            
+            -- 加载 snippets 管理工具
+            require("snippets.manager")
+            
+            -- 可选：设置 LuaSnip 的其他配置
+            local ls = require("luasnip")
+            
+            -- 设置快捷键映射
+            vim.keymap.set({"i"}, "<C-K>", function() ls.expand() end, {silent = true})
+            vim.keymap.set({"i", "s"}, "<C-L>", function() ls.jump( 1) end, {silent = true})
+            vim.keymap.set({"i", "s"}, "<C-J>", function() ls.jump(-1) end, {silent = true})
+            vim.keymap.set({"i", "s"}, "<C-E>", function()
+                if ls.choice_active() then
+                    ls.change_choice(1)
+                end
+            end, {silent = true})
         end
     }
 }
-

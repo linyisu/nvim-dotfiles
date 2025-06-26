@@ -23,33 +23,24 @@ vim.opt.smartcase = true  -- but make it case sensitive if an uppercase is enter
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 
-vim.opt.showmode = false
+vim.g.large_file_size_limit = 100000000000
+
+vim.opt.showmode = true
 --vim.opt.laststatus = 0
 --vim.opt.showcmd = false
-
 
 vim.opt.wrap = true
 
 if vim.g.neovide then
-    -- vim.g.neovide_cursor_vfx_mode = "sonicboom"       -- 启用音波模式
-    -- vim.g.neovide_cursor_vfx_particle_density = 50.0 -- 波纹密度（越高波纹越密集）
-    -- vim.g.neovide_cursor_vfx_particle_speed = 15.0 -- 波纹扩散速度
-    -- vim.g.neovide_cursor_vfx_particle_phase = 2.5  -- 波纹相位（控制波动幅度）
-    -- vim.g.neovide_cursor_vfx_particle_curl = 0.5   -- 波纹扭曲度（0=正圆，1=扭曲）
-    --
-    -- -- ===== 拖尾增强 ===== --
-    -- vim.g.neovide_cursor_trail_size = 0.3      -- 轻微拖尾（配合音波更自然）
-    -- vim.g.neovide_cursor_animation_length = 0.15 -- 动画时长（秒）
-    --
-    -- -- ===== 视觉优化 ===== --
-    -- vim.g.neovide_cursor_antialiasing = true -- 抗锯齿（波纹更平滑）
-    -- vim.g.neovide_transparency = 0.9       -- 背景半透明（增强波纹可见性）
-
-
+    vim.g.neovide_opacity = 0.88
+    vim.g.neovide_confirm_quit = true
+    vim.g.neovide_cursor_vfx_mode = ""
+    vim.g.neovide_cursor_trail_length = 0.03
     vim.g.neovide_hide_mouse_when_typing = true
+
     vim.g.neovide_padding_top = 0
     vim.g.neovide_padding_bottom = 0
     vim.g.neovide_padding_right = 0
     vim.g.neovide_padding_left = 0
-    vim.o.guifont = "JetBrainsMono Nerd Font:h14" -- text below applies for VimScript
+    vim.o.guifont = "JetBrainsMono Nerd Font:h14"
 end

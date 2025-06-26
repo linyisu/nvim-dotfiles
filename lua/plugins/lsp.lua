@@ -1,6 +1,6 @@
 return {
     -- 'onsails/lspkind-nvim',
-    --
+    -- 
     {
         'nvimdev/lspsaga.nvim',
         config = function()
@@ -8,18 +8,21 @@ return {
                 lightbulb = {
                     enable = false,
                     sign = true,
-                    virtual_text = false, -- 禁用行尾的虚拟文本
+                    virtual_text = false,
                     debounce = 10,
                     sign_priority = 40,
                 }
             })
         end,
-        --dependencies = {}
     },
 
     {
         'neovim/nvim-lspconfig',
         config = function()
+            require('lspconfig').lua.setup {
+                settings = { Lua = { workspace = { preloadFileSize = 1000000 } } }
+            }
+
             vim.api.nvim_create_autocmd("LspAttach", {
                 callback = function(args)
                     local buf = args.buf
@@ -27,6 +30,6 @@ return {
                         { noremap = true })
                 end,
             })
-        end
+        end,
     },
 }

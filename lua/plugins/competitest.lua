@@ -124,7 +124,7 @@ return {
                 evaluate_template_modifiers = false,
                 date_format = "%c",
                 received_files_extension = "cpp",
-                received_problems_path = "/mnt/d/FileSync/acm/Problems/$(PROBLEM).$(FEXT)",
+                received_problems_path = "D:/code/$(PROBLEM).$(FEXT)",
                 received_problems_prompt_path = true,
                 received_contests_directory = "$(HOME)/Documents/Contests",
                 received_contests_problems_path = "$(PROBLEM).$(FEXT)",

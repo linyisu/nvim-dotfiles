@@ -6,8 +6,10 @@ return {
 
         -- 插件加载完成后，执行以下配置
         config = function()
-            local ls = require("luasnip")
-            ls.add_snippets("cpp", require("snippets.cpp"))
-        end,
-    },
+            -- 这里的路径需要根据实际情况调整，假设 snippets 文件夹在同级
+            require("snippets.cpp")  -- 加载 C++ 语言的片段
+            require("snippets.generated_snippets")  -- 加载所有语言的片段
+        end
+    }
 }
+

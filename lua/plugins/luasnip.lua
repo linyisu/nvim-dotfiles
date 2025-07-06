@@ -9,22 +9,22 @@ return {
             -- 使用统一的 snippets 管理器加载所有代码片段
             local snippet_manager = require("snippets")
             snippet_manager.load_all_snippets()
-            
+
             -- 加载 snippets 管理工具
             require("snippets.manager")
-            
+
             -- 可选：设置 LuaSnip 的其他配置
             local ls = require("luasnip")
-            
+
             -- 设置快捷键映射
-            vim.keymap.set({"i"}, "<C-K>", function() ls.expand() end, {silent = true})
-            vim.keymap.set({"i", "s"}, "<C-L>", function() ls.jump( 1) end, {silent = true})
-            vim.keymap.set({"i", "s"}, "<C-J>", function() ls.jump(-1) end, {silent = true})
-            vim.keymap.set({"i", "s"}, "<C-E>", function()
+            vim.keymap.set({ "i", "s" }, "<C-S-j>", function() ls.jump(1) end, { silent = true })
+            vim.keymap.set({ "i", "s" }, "<C-S-k>", function() ls.jump(-1) end, { silent = true })
+            vim.keymap.set({ "i", "s" }, "<C-S-h>", function()
                 if ls.choice_active() then
                     ls.change_choice(1)
                 end
-            end, {silent = true})
+            end, { silent = true })
         end
     }
 }
+

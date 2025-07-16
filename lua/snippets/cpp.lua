@@ -6,6 +6,50 @@ local t = ls.text_node
 local i = ls.insert_node
 
 return {
+    s("ds", {
+		t({
+			"#include <iostream>",
+			"using namespace std;",
+			"",
+			"void solve()",
+			"{",
+			"	"
+		}),
+		i(1, ""),
+		t({
+			"",
+			"}",
+			"",
+			"int main()",
+			"{",
+			"	solve();",
+			"	return 0;",
+			"}"
+		})
+	}),
+    s("ds", {
+		t({
+			"#include <iostream>",
+			"using namespace std;",
+			"",
+			"void solve()",
+			"{",
+			"	"
+		}),
+		i(1, ""),
+		t({
+			"",
+			"}",
+			"",
+			"int main()",
+			"{",
+            "	int t;",
+			"	for (cin >> t; t --; )",
+			"		solve();",
+			"	return 0;",
+			"}"
+		})
+	}),
 	s("normal", {
 		t({
 			"#include <bits/stdc++.h>",

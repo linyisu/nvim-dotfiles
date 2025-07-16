@@ -32,7 +32,7 @@ vim.opt.showmode = true
 vim.opt.wrap = true
 
 if vim.g.neovide then
-    vim.g.neovide_opacity = 0.88
+    vim.g.neovide_opacity = 0.80
     vim.g.neovide_confirm_quit = true
     vim.g.neovide_cursor_vfx_mode = ""
     vim.g.neovide_cursor_trail_length = 0.03

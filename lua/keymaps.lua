@@ -9,6 +9,10 @@ vim.keymap.set('n', '<C-Down>', ':resize +2<CR>', opts)
 vim.keymap.set('n', '<C-Left>', ':vertical resize -2<CR>', opts)
 vim.keymap.set('n', '<C-Right>', ':vertical resize +2<CR>', opts)
 
+-- buffer 相关
+vim.keymap.set('n', '<C-z>', ':BufferPrevious<CR>', opts)
+vim.keymap.set('n', '<C-x>', ':BufferNext<CR>', opts)
+
 
 -- 在 normal 模式下，使用 <leader>j 和 <leader>k 来移动行
 vim.keymap.set('n', '<M-k>', ':m .-2<CR>', opts)
@@ -40,11 +44,12 @@ vim.keymap.set('n', '<C-b>', ':NvimTreeToggle<CR>', opts)
 
 -- 测试点相关的
 vim.keymap.set('n', '<leader>g', ':CompetiTest receive problem<CR>', opts)
+vim.keymap.set('n', '<leader>c', ':CompetiTest receive contest<CR>', opts)
 vim.keymap.set('n', '<leader>tt', ':CompetiTest run<CR>', opts)
-vim.keymap.set('n', '<leader>ta', ':CompetiTest add_testcase<CR>', opts)
-vim.keymap.set('n', '<leader>te', ':CompetiTest edit_testcase<CR>', opts)
-vim.keymap.set('n', '<leader>td', ':CompetiTest delete_testcase<CR>', opts)
 vim.keymap.set('n', '<leader>tg', ':CompetiTest receive testcases<CR>', opts)
+-- vim.keymap.set('n', '<leader>ta', ':CompetiTest add_testcase<CR>', opts)
+-- vim.keymap.set('n', '<leader>te', ':CompetiTest edit_testcase<CR>', opts)
+-- vim.keymap.set('n', '<leader>td', ':CompetiTest delete_testcase<CR>', opts)
 
 
 --telescope
@@ -53,7 +58,7 @@ vim.keymap.set('n', '<leader>//', ':Telescope live_grep<CR>', opts)
 vim.keymap.set('n', '<leader>/', ':Telescope<CR>', opts)
 
 
-vim.keymap.set('n', '<leader>q', ":Dashboard<CR>", opts)
+vim.keymap.set('n', '<leader>d', ":Dashboard<CR>", opts)
 
 
 -- luasnip 相关
@@ -69,6 +74,9 @@ vim.keymap.set('n', '<leader<S-x>', ":BufferCloseAllButCurrent<CR>", opts)
 
 vim.keymap.set('n', '<F5>', ":OverseerRun<CR>", opts)
 
+
+-- 新建测试文件
+vim.keymap.set("n", '<leader>v', ":e D:/code/test.cpp<CR>", opts)
 
 if vim.g.neovide then
     vim.keymap.set({ "n", "v" }, "<C-+>", ":lua vim.g.neovide_scale_factor = vim.g.neovide_scale_factor + 0.1<CR>", opts)

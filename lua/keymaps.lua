@@ -31,13 +31,11 @@ vim.keymap.set('v', '<C-S-j>', ':s/\\%V\\s*\\n\\s*/ /g<CR>', opts)
 
 
 -- 与lsp相关的
-
+vim.keymap.set('n', '<leader>re', ':LspRestart<CR>', opts)
 vim.keymap.set('n', '<leader>hh', ':Lspsaga code_action<CR>', opts)
 vim.keymap.set('n', '<leader>hi', ':Lspsaga hover_doc<CR>', opts)
 vim.keymap.set('n', '<leader>e', ':Lspsaga show_buf_diagnostics<CR>', opts)
-
 vim.keymap.set('n', '<leader>rn', ':lua vim.lsp.buf.rename()<CR>', opts)
-
 
 vim.keymap.set('n', '<C-b>', ':NvimTreeToggle<CR>', opts)
 
@@ -62,21 +60,22 @@ vim.keymap.set('n', '<leader>d', ":Dashboard<CR>", opts)
 
 
 -- luasnip 相关
-
 -- 插入 & 选择模式：跳到 下/上 一个 snippet 插入点
 vim.keymap.set({ "i", "s" }, "<C-j>", function() local ls = require("luasnip") if ls.expand_or_jumpable() then ls.expand_or_jump() end end, opts)
 vim.keymap.set({ "i", "s" }, "<C-k>", function() local ls = require("luasnip") if ls.jumpable(-1) then ls.jump(-1) end end, opts)
-
-
+vim.keymap.set({ "i", "s" }, "<C-l>", function() local ls = require("luasnip") if ls.choice_active() then ls.change_choice(1) end end, opts)
+vim.keymap.set("n", "<leader><leader>s", "<Cmd>source ~/.config/nvim/lua/plugins/luasnip.lua<CR>")
 
 vim.keymap.set('n', '<leader>x', ":BufferClose<CR>", opts)
 vim.keymap.set('n', '<leader<S-x>', ":BufferCloseAllButCurrent<CR>", opts)
 
 vim.keymap.set('n', '<F5>', ":OverseerRun<CR>", opts)
 
+-- vim.keymap.set('v', "<C-d>", function() vim.schedule(function() require('snippets.debug').debug_print() end) end, opts)
+
 
 -- 新建测试文件
-vim.keymap.set("n", '<leader>v', ":e D:/code/test.cpp<CR>", opts)
+vim.keymap.set("n", '<leader>v', ":e /mnt/d/code/test.cpp<CR>", opts)
 
 if vim.g.neovide then
     vim.keymap.set({ "n", "v" }, "<C-+>", ":lua vim.g.neovide_scale_factor = vim.g.neovide_scale_factor + 0.1<CR>", opts)
@@ -86,4 +85,5 @@ if vim.g.neovide then
         ":lua vim.g.neovide_scale_factor = vim.g.neovide_scale_factor + 0.1<CR>", opts)
     vim.keymap.set({ "n", "v" }, "<C-ScrollWheelDown>",
         ":lua vim.g.neovide_scale_factor = vim.g.neovide_scale_factor - 0.1<CR>", opts)
+
 end

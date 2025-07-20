@@ -16,23 +16,13 @@ return {
                 },
                 sources = cmp.config.sources(
                     {
-                        { name = 'nvim_lsp' },
+                        { name = 'friendly-snippets' },
                         { name = 'luasnip' },
-                    },
-                    {
                         { name = 'buffer' },
-                        { name = 'path' }
+                        { name = 'path' },
+                        { name = 'nvim_lsp' },
                     }),
-                formatting = {
-                    -- format = lspkind.cmp_format({
-                    --   with_text = true,
-                    -- maxwidth = 50,
-                    -- before = function(entry, vim_item)
-                    --    vim_item.menu = "[" .. string.upper(entry.source.name) .. "]"
-                    --  return vim_item
-                    -- end
-                    --})
-                },
+                formatting = {},
 
                 mapping = {
 
@@ -43,10 +33,9 @@ return {
                     ['<Tab>'] = cmp.mapping.confirm({
                         select = true,
                         behavior = cmp.ConfirmBehavior.Replace
-                    })
+                    }),
                 }
             }
         end,
     },
 }
-

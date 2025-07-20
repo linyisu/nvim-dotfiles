@@ -1,6 +1,6 @@
 return {
     -- 'onsails/lspkind-nvim',
-    -- 
+
     {
         'nvimdev/lspsaga.nvim',
         config = function()
@@ -19,15 +19,27 @@ return {
     {
         'neovim/nvim-lspconfig',
         config = function()
-            require('lspconfig').lua.setup {
-                settings = { Lua = { workspace = { preloadFileSize = 1000000 } } }
-            }
+            local capabilities = require('cmp_nvim_lsp').default_capabilities()
+            local lspconfig = require('lspconfig')
+
+            lspconfig.clangd.setup({
+                capabilities = capabilities,
+            })
+
+            lspconfig.lua_ls.setup({
+                capabilities = capabilities,
+                settings = {
+                    Lua = {
+                        workspace = { preloadFileSize = 1000000 }
+                    }
+                }
+            })
 
             vim.api.nvim_create_autocmd("LspAttach", {
                 callback = function(args)
                     local buf = args.buf
-                    vim.api.nvim_buf_set_keymap(buf, 'n', '<C-l>', "<cmd>lua vim.lsp.buf.format()<CR>",
-                        { noremap = true })
+                    vim.api.nvim_buf_set_keymap(buf, 'n', '<C-s>', "<cmd>lua vim.lsp.buf.format({ async = true })<CR>",
+                        { noremap = true, silent = true, desc = "[L]SP [F]ormat" })
                 end,
             })
         end,

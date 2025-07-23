@@ -1,4 +1,4 @@
-local ls = require("luasnip") -- 引入 LuaSnip
+local ls = require("luasnip")
 
 -- 定义一些快捷函数
 local s = ls.snippet
@@ -23,23 +23,40 @@ return {
             "",
             "",
         }),
-        c(2, {
-            t({
-                "int main()",
-                "{",
-                "	solve();",
-                "	return 0;",
-                "}"
-            }),
-            t({
-                "int main()",
-                "{",
-                "	int t;",
-                "	for (cin >> t; t --; )",
-                "		solve();",
-                "	return 0;",
-                "}"
-            })
+        t({
+            "int main()",
+            "{",
+            "	solve();",
+            "	return 0;",
+            "}"
+        }),
+        i(0)
+    }),
+
+    s("dss", {
+        t({
+            "#include <iostream>",
+            "using namespace std;",
+            "",
+            "void solve()",
+            "{",
+            "	"
+        }),
+        i(1, ""),
+        t({
+            "",
+            "}",
+            "",
+            "",
+        }),
+        t({
+            "int main()",
+            "{",
+            "	int t;",
+            "	for (cin >> t; t --; )",
+            "		solve();",
+            "	return 0;",
+            "}"
         }),
         i(0)
     }),
@@ -61,41 +78,76 @@ return {
             "",
             "}",
             "",
-            "",
+            "signed main()",
+            "{",
+            "	IOS;",
+            "	solve();",
+            "	return 0;",
+            "}"
         }),
-        c(2, {
-            t({
-                "signed main()",
-                "{",
-                "	IOS;",
-                "	int t;",
-                "	for (cin >> t; t --; )",
-                "		solve();",
-                "	return 0;",
-                "}"
-            }),
-            t({
-                "signed main()",
-                "{",
-                "	IOS;",
-                "	solve();",
-                "	return 0;",
-                "}"
-            }),
-            t({
-                "signed main()",
-                "{",
-                "	IOS;",
-                "	int t;",
-                "	cin >> t;",
-                "	for (int i = 1; i <= t; i ++)",
-                "	{",
-                "		cout << \"Case \" << i << \": \";",
-                "		solve();",
-                "	}",
-                "	return 0;",
-                "}"
-            })
+        i(0)
+    }),
+
+    s("normals", {
+        t({
+            "#include <bits/stdc++.h>",
+            "#define int long long",
+            "#define inf 0x3f3f3f3f3f3f3f3f",
+            "#define IOS ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);",
+            "using namespace std;",
+            "",
+            "void solve()",
+            "{",
+            "	"
+        }),
+        i(1, ""),
+        t({
+            "",
+            "}",
+            "",
+            "",
+            "signed main()",
+            "{",
+            "	IOS;",
+            "	int t;",
+            "	for (cin >> t; t --; )",
+            "		solve();",
+            "	return 0;",
+            "}"
+        }),
+        i(0)
+    }),
+
+    s("normalcase", {
+        t({
+            "#include <bits/stdc++.h>",
+            "#define int long long",
+            "#define inf 0x3f3f3f3f3f3f3f3f",
+            "#define IOS ios::sync_with_stdio(0), cin.tie(0), cout.tie(0);",
+            "using namespace std;",
+            "",
+            "void solve()",
+            "{",
+            "	"
+        }),
+        i(1, ""),
+        t({
+            "",
+            "}",
+            "",
+            "signed main()",
+            "{",
+            "	IOS;",
+            "	int t;",
+            "	cin >> t;",
+            "	for (int i = 1; i <= t; i ++)",
+            "	{",
+            "		cout << \"Case \" << i << \": \";",
+            "		solve();",
+            "	}",
+            "	return 0;",
+            "}"
+
         }),
         i(0)
     }),

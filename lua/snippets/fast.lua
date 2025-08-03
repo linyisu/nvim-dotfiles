@@ -53,6 +53,9 @@ auto getRank = [&](int x) -> int {{ return lower_bound({}.begin() + 1, {}.end(),
         return sn(nil, fmt("accumulate({}.begin() + 1, {}.end(), {})", { i(1, var), rep(1), i(2, "0ll") }))
     end, {})),
 
+    s("for",
+        fmt([[for (int {} = {}; {} {}; {} {})]],
+            { i(1, "i"), i(2, "1"), rep(1), i(3), rep(1), c(4, { t "++", t "--", t"" }) })),
     s("mod", fmt("const int MOD = {};", { c(1, { t "1e9 + 7", t "998244353", t "998244383", t "" }) })),
     s("yr", fmt([[cout << "{}\n";
 return;]], { c(1, { t "Yes", t "YES" }) })),
@@ -110,37 +113,33 @@ int opy[] = {{{}}};
         }
     )),
 
-    p(".db", {
-        f(function(_, parent)
-            local var = parent.snippet.env.POSTFIX_MATCH
-            return 'cerr << "' .. var .. ' = " << ' .. var .. ' << \'\\n\';'
-        end, {}),
+    s("dbg", {
+        t({
+            "#ifndef ONLINE_JUDGE",
+            "#include \"114514.h\"",
+            "#else",
+            "#define dbg(...) ((void)114514)",
+            "#endif",
+        }),
     }),
-    p(".dbv", {
-        f(function(_, parent)
-            local var = parent.snippet.env.POSTFIX_MATCH
-            return 'for (size_t _ = 0; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
-        end, {}),
-    }),
-    p(".dbv1", {
-        f(function(_, parent)
-            local var = parent.snippet.env.POSTFIX_MATCH
-            return 'for (size_t _ = 1; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
-        end, {}),
-    }),
-    p(".read", {
+
+    s("fi", { t({ "first" }) }),
+    s("se", { t({ "second" }) }),
+
+    p(".write", {
         f(function(_, parent)
             local var = parent.snippet.env.POSTFIX_MATCH
             return 'for (int {} = 0; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
         end, {}),
     }),
+    s("rng", { t("mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());"), }),
 
     s("vi", fmt([[vector<{}> {}{}]], { i(1, "int"), i(2, "v"),
         c(3, { sn(nil, { t("("), i(1, "n + 1"), t(");"), }), t(";"), t(""), }), })),
     s("vvi", { c(1, {
         sn(nil,
             { t("vector<vector<"), i(1, "int"), t(">> "), i(2, "v"), t("("), i(3, "n + 1"), t(", vector<"), f(
-            function(args) return args[1][1] or "" end, { 1 }), t(">("), i(4, "m + 1"), t("));") }),
+                function(args) return args[1][1] or "" end, { 1 }), t(">("), i(4, "m + 1"), t("));") }),
         sn(nil, { t("vector<vector<"), i(1, "int"), t(">> "), i(2, "v"), t("("), i(3, "n + 1"), t(");") }), }), }),
 
     s("pii", { t("pair<int, int>") }),
@@ -163,8 +162,8 @@ int opy[] = {{{}}};
     -- 常用常数定义
     s("const", { t("const int "), i(1, "N"), t(" = "), i(2, "1e5"), t(";") }),
 
-    -- -- 无穷大
-    -- s("inf", { t("const int INF = "), i(1, "0x3f3f3f3f"), t(";") }),
+    -- 无穷大
+    s("inf", { t("const int INF = "), i(1, "0x3f3f3f3f"), t(";") }),
 
     -- lambda函数
     s("lambda", { t("auto "), i(1, "f"), t(" = [&]("), i(2, "int x"), t(") -> "), i(3, "int"), t(" {"), i(4), t("};") }),
@@ -180,4 +179,23 @@ int opy[] = {{{}}};
             "};"
         })
     }),
+
+    -- p(".db", {
+    --     f(function(_, parent)
+    --         local var = parent.snippet.env.POSTFIX_MATCH
+    --         return 'cerr << "' .. var .. ' = " << ' .. var .. ' << \'\\n\';'
+    --     end, {}),
+    -- }),
+    -- p(".dbv", {
+    --     f(function(_, parent)
+    --         local var = parent.snippet.env.POSTFIX_MATCH
+    --         return 'for (size_t _ = 0; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
+    --     end, {}),
+    -- }),
+    -- p(".dbv1", {
+    --     f(function(_, parent)
+    --         local var = parent.snippet.env.POSTFIX_MATCH
+    --         return 'for (size_t _ = 1; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
+    --     end, {}),
+    -- }),
 }

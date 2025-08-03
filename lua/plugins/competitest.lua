@@ -94,7 +94,7 @@ return {
                 compile_directory = ".",
                 compile_command = {
                     c = { exec = "gcc", args = { "-Wall", "$(FNAME)", "-o", "$(FNOEXT)" } },
-                    cpp = { exec = "g++", args = {"-Wall", "-std=c++26", "$(FNAME)", "-o", "output.exe"} },
+                    cpp = { exec = "g++", args = {"-Wall", "-I/home/linyisu/.config/nvim", "-std=c++2c", "$(FNAME)", "-o", "output.exe"} },
                     rust = { exec = "rustc", args = { "$(FNAME)" } },
                     java = { exec = "javac", args = { "$(FNAME)" } },
                 },

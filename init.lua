@@ -7,5 +7,4 @@ else
     require('lazy-init')
     require('colorscheme')
     require('keymaps')
-    require('custom_actions')
 end

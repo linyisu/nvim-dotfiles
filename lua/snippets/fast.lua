@@ -114,19 +114,52 @@ int opy[] = {{{}}};
         }
     )),
 
+    ps("qpow", [[
+template<typename T> T qpow(T a, T b)
+{
+    T t = 1;
+    while (b)
+    {
+        if (b & 1) t = t * a;
+        a = a * a;
+        b >>= 1;
+    }
+    return t;
+}
+    ]]),
+    ps("qpowM", [[
+template<typename T> T qpow(T a, T b)
+{
+    T t = 1;
+    a %= MOD;
+    while (b)
+    {
+        if (b & 1) t = t * a % MOD;
+        a = a * a % MOD;
+        b >>= 1;
+    }
+    return t;
+}
+template<typename T> T inv(T x) { return qpow(x, MOD - 2);}
+    ]]),
+    ps("exgcd", [[
+template<typename T> T exgcd(T a, T b, T& x, T& y)
+{
+    if (!b) { x = 1; y = 0; return a; }
+    T d = exgcd(b, a % b, x, y), k = x;
+    x = y, y = k - a / b * y;
+    return d;
+}
+template<typename T> T inv(T x) { T p, q, g = exgcd(x, MOD, p, q); return g - 1 ? -1 : (p % MOD + MOD) % MOD; }
+    ]]),
+
     ps("qr", [[
 void rd() {}
-template<typename T, typename... Args>
-void rd(T &x, Args&... args)
-{
-    x = 0;
-    char ch = getchar();
-    while (ch < '0' || ch > '9')
-        ch = getchar();
-    while (ch >= '0' && ch <= '9')
-        x = x * 10 + ch - '0', ch = getchar();
-    rd(args...);
-}
+void wr() {}
+template<typename T, typename... Args> void rd(T &x, Args&... args) { x = 0; char ch = getchar(); while (ch < '0' || ch > '9') ch = getchar(); while (ch >= '0' && ch <= '9') x = x * 10 + ch - '0', ch = getchar(); rd(args...); }
+template<typename T> void _wr(T x) { if (x < 0) { putchar('-'); x = -x; } if (x == 0) { putchar('0'); return; } char buf[21]; int i = 0; while (x > 0) { buf[i ++] = x % 10 + '0'; x /= 10; } while (i -- > 0) putchar(buf[i]); }
+template<typename T, typename... Args> void wr(T x, Args... args) { _wr(x); if (sizeof...(args) > 0) putchar(' '); wr(args...); }
+template<typename... Args> void wrln(Args... args) { wr(args...); putchar('\n'); }
     ]]),
 
     s("dbg", {
@@ -178,16 +211,13 @@ void rd(T &x, Args&... args)
     -- 常用常数定义
     s("const", { t("const int "), i(1, "N"), t(" = "), i(2, "1e5"), t(";") }),
 
-    -- 无穷大
     s("inf", { t("const int INF = "), i(1, "0x3f3f3f3f"), t(";") }),
 
-    -- lambda函数
     s("lambda", { t("auto "), i(1, "f"), t(" = [&]("), i(2, "int x"), t(") -> "), i(3, "int"), t(" {"), i(4), t("};") }),
-
-    -- 结构体
     s("struct", {
         t("struct "), i(1, "node"), t({
-        " {",
+        "",
+        "{",
         "    ",
     }), i(2),
         t({
@@ -195,23 +225,4 @@ void rd(T &x, Args&... args)
             "};"
         })
     }),
-
-    -- p(".db", {
-    --     f(function(_, parent)
-    --         local var = parent.snippet.env.POSTFIX_MATCH
-    --         return 'cerr << "' .. var .. ' = " << ' .. var .. ' << \'\\n\';'
-    --     end, {}),
-    -- }),
-    -- p(".dbv", {
-    --     f(function(_, parent)
-    --         local var = parent.snippet.env.POSTFIX_MATCH
-    --         return 'for (size_t _ = 0; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
-    --     end, {}),
-    -- }),
-    -- p(".dbv1", {
-    --     f(function(_, parent)
-    --         local var = parent.snippet.env.POSTFIX_MATCH
-    --         return 'for (size_t _ = 1; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
-    --     end, {}),
-    -- }),
 }

@@ -209,38 +209,6 @@ return {
             "};" })
     }),
 
-    s("qpow", {
-        t({ "long long qpow(long long a, long long b)",
-            "{",
-            "	long long tmp = 1;",
-            "	while (b)",
-            "	{",
-            "		if (b & 1)",
-            "			tmp *= a;",
-            "		a *= a;",
-            "		b >>= 1;",
-            "	}",
-            "	return tmp;",
-            "}" })
-    }),
-
-    s("qpowM", {
-        t({ "long long qpow(long long a, long long b)",
-            "{",
-            "	long long tmp = 1;",
-            "	a %= MOD;",
-            "	while (b)",
-            "	{",
-            "		if (b & 1)",
-            "			tmp = tmp * a % MOD;",
-            "		a = a * a % MOD;",
-            "		b >>= 1;",
-            "	}",
-            "	return tmp;",
-            "}",
-            "long long inv(long long x) { return qpow(x, MOD - 2);}" })
-    }),
-
     s("Dijkstra", {
         t({ "",
             "struct GRA",

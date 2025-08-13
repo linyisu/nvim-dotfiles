@@ -211,9 +211,9 @@ return {
     }),
 
     s("qpow", {
-        t({ "int qpow(int a, int b)",
+        t({ "long long qpow(long long a, long long b)",
             "{",
-            "	int tmp = 1;",
+            "	long long tmp = 1;",
             "	while (b)",
             "	{",
             "		if (b & 1)",
@@ -226,9 +226,9 @@ return {
     }),
 
     s("qpowM", {
-        t({ "int qpow(int a, int b)",
+        t({ "long long qpow(long long a, long long b)",
             "{",
-            "	int tmp = 1;",
+            "	long long tmp = 1;",
             "	a %= MOD;",
             "	while (b)",
             "	{",
@@ -239,7 +239,7 @@ return {
             "	}",
             "	return tmp;",
             "}",
-            "int inv(int x) { return qpow(x, MOD - 2);}" })
+            "long long inv(long long x) { return qpow(x, MOD - 2);}" })
     }),
 
     s("Dijkstra", {

@@ -11,6 +11,7 @@ local i = ls.insert_node
 local f = ls.function_node
 local c = ls.choice_node
 local d = ls.dynamic_node
+local ps = ls.parser.parse_snippet
 local p = require("luasnip.extras.postfix").postfix
 -- local same = function(index) return f(function(arg) return arg[1] end, { index }) end
 
@@ -55,7 +56,7 @@ auto getRank = [&](int x) -> int {{ return lower_bound({}.begin() + 1, {}.end(),
 
     s("for",
         fmt([[for (int {} = {}; {} {}; {} {})]],
-            { i(1, "i"), i(2, "1"), rep(1), i(3), rep(1), c(4, { t "++", t "--", t"" }) })),
+            { i(1, "i"), i(2, "1"), rep(1), i(3), rep(1), c(4, { t "++", t "--", t "" }) })),
     s("mod", fmt("const int MOD = {};", { c(1, { t "1e9 + 7", t "998244353", t "998244383", t "" }) })),
     s("yr", fmt([[cout << "{}\n";
 return;]], { c(1, { t "Yes", t "YES" }) })),
@@ -112,6 +113,21 @@ int opy[] = {{{}}};
             end, { 1 })
         }
     )),
+
+    ps("qr", [[
+void rd() {}
+template<typename T, typename... Args>
+void rd(T &x, Args&... args)
+{
+    x = 0;
+    char ch = getchar();
+    while (ch < '0' || ch > '9')
+        ch = getchar();
+    while (ch >= '0' && ch <= '9')
+        x = x * 10 + ch - '0', ch = getchar();
+    rd(args...);
+}
+    ]]),
 
     s("dbg", {
         t({

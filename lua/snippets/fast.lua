@@ -1,4 +1,4 @@
-local ls = require("luasnip") -- 引入 LuaSnip
+local ls = require("luasnip") -- 引入 LuaSnipfa
 
 -- 定义一些快捷函数
 local ls = require("luasnip")
@@ -115,9 +115,9 @@ int opy[] = {{{}}};
     )),
 
     ps("qpow", [[
-template<typename T> T qpow(T a, T b)
+long long qpow(long long a, long long b)
 {
-    T t = 1;
+    long long t = 1;
     while (b)
     {
         if (b & 1) t = t * a;
@@ -128,9 +128,9 @@ template<typename T> T qpow(T a, T b)
 }
     ]]),
     ps("qpowM", [[
-template<typename T> T qpow(T a, T b)
+long long qpow(long long a, long long b)
 {
-    T t = 1;
+    long long t = 1;
     a %= MOD;
     while (b)
     {
@@ -140,23 +140,75 @@ template<typename T> T qpow(T a, T b)
     }
     return t;
 }
-template<typename T> T inv(T x) { return qpow(x, MOD - 2);}
+long long inv(long long x) { return qpow(x, MOD - 2);}
     ]]),
     ps("exgcd", [[
-template<typename T> T exgcd(T a, T b, T& x, T& y)
+long long exgcd(long long a, long long b, long long& x, long long& y)
 {
     if (!b) { x = 1; y = 0; return a; }
-    T d = exgcd(b, a % b, x, y), k = x;
+    long long d = exgcd(b, a % b, x, y), k = x;
     x = y, y = k - a / b * y;
     return d;
 }
-template<typename T> T inv(T x) { T p, q, g = exgcd(x, MOD, p, q); return g - 1 ? -1 : (p % MOD + MOD) % MOD; }
+long long inv(long long x) { long long p, q, g = exgcd(x, MOD, p, q); return g - 1 ? -1 : (p % MOD + MOD) % MOD; }
+    ]]),
+    ps("euler", [[
+long long Phi(long long n)
+{
+    long long res = n;
+    for (int i = 2; i <= n / i; i ++)
+        if (!(n % i))
+        {
+            res = res / i * (i - 1);
+            while (!(n % i))
+                n /= i;
+        }
+    if (n > 1)
+        res = res / n * (n - 1);
+    return res;
+}
+    ]]),
+    ps("eulersieve", [[
+const int N = 1e5 + 5;
+vector<int> primes, phi(N), pre(N);
+vector<bool> isPrime(N, true);
+void euler_sieve()
+{
+    isPrime[0] = isPrime[1] = false;
+    phi[1] = pre[1] = 1;
+    for (int i = 2; i < N; i ++)
+    {
+        if (isPrime[i])
+        {
+            primes.emplace_back(i);
+            phi[i] = i - 1;
+        }
+        for (auto prime : primes)
+        {
+            if (i * prime >= N)
+                break;
+            isPrime[i * prime] = false;
+            if (i % prime)
+                phi[i * prime] = phi[i] * (prime - 1);
+            else
+            {
+                phi[i * prime] = phi[i] * prime;
+                break;
+            }
+        }
+        pre[i] = pre[i - 1] + phi[i];
+    }
+}
     ]]),
 
     ps("qr", [[
 void rd() {}
 void wr() {}
-template<typename T, typename... Args> void rd(T &x, Args&... args) { x = 0; char ch = getchar(); while (ch < '0' || ch > '9') ch = getchar(); while (ch >= '0' && ch <= '9') x = x * 10 + ch - '0', ch = getchar(); rd(args...); }
+void _wr(char c) { putchar(c); }
+void _wr(const std::string &s) { fputs(s.c_str(), stdout); }
+void rd(char &c) { c = getchar(); while (isspace(c)) c = getchar(); }
+void rd(std::string &s) { s.clear(); char ch = getchar(); while (isspace(ch)) ch = getchar(); while (!isspace(ch) && ch != EOF) { s += ch; ch = getchar(); } }
+template<typename T, typename... Args> void rd(T &x, Args&... args) { x = 0; char ch = getchar(); int f = 1; while (ch < '0' || ch > '9') { if (ch == '-') f = -1; ch = getchar(); } while (ch >= '0' && ch <= '9') { x = x * 10 + ch - '0'; ch = getchar(); } x *= f; rd(args...); }
 template<typename T> void _wr(T x) { if (x < 0) { putchar('-'); x = -x; } if (x == 0) { putchar('0'); return; } char buf[21]; int i = 0; while (x > 0) { buf[i ++] = x % 10 + '0'; x /= 10; } while (i -- > 0) putchar(buf[i]); }
 template<typename T, typename... Args> void wr(T x, Args... args) { _wr(x); if (sizeof...(args) > 0) putchar(' '); wr(args...); }
 template<typename... Args> void wrln(Args... args) { wr(args...); putchar('\n'); }

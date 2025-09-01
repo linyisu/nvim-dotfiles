@@ -2,6 +2,10 @@ local opts = {
     noremap = true, -- non-recursive
     silent = true,  -- do not show message
 }
+
+vim.keymap.set('v', '<S-Up>', '<Up>', opts)
+vim.keymap.set('v', '<S-Down>', '<Down>', opts)
+
 vim.keymap.set('n', '<C-Up>', ':resize -2<CR>', opts)
 vim.keymap.set('n', '<C-Down>', ':resize +2<CR>', opts)
 vim.keymap.set('n', '<C-Left>', ':vertical resize -2<CR>', opts)
@@ -11,18 +15,18 @@ vim.keymap.set('n', '<C-Right>', ':vertical resize +2<CR>', opts)
 vim.keymap.set('n', '<C-z>', ':BufferPrevious<CR>', opts)
 vim.keymap.set('n', '<C-x>', ':BufferNext<CR>', opts)
 
-
 -- 在 normal 模式下，使用 <leader>j 和 <leader>k 来移动行
-vim.keymap.set('n', '<M-k>', ':m .-2<CR>', opts)
-vim.keymap.set('n', '<M-j>', ':m .+1<CR>', opts)
-vim.keymap.set('n', '<M-Down>', ':m .+1<CR>', opts)
-vim.keymap.set('n', '<M-Up>', ':m .-2<CR>', opts)
+vim.keymap.set('n', '<M-j>', ':m .+1<CR>==', opts)
+vim.keymap.set('n', '<M-Down>', ':m .+1<CR>==', opts)
+vim.keymap.set('n', '<M-k>', ':m .-2<CR>==', opts)
+vim.keymap.set('n', '<M-Up>', ':m .-2<CR>==', opts)
 
 -- 在 visual 模式下，使用 <leader>j 和 <leader>k 来移动选定的行
-vim.keymap.set('v', '<M-j>', ":m '>+1<CR>`<my`>mzgv`yo`z", opts)
-vim.keymap.set('v', '<M-k>', ":m '<-2<CR>`>my`<mzgv`yo`z", opts)
-vim.keymap.set('v', '<M-Down>', ":m '>+1<CR>`<my`>mzgv`yo`z", opts)
-vim.keymap.set('v', '<M-Up>', ":m '<-2<CR>`>my`<mzgv`yo`z", opts)
+vim.keymap.set('v', '<M-j>', ":m '>+1<CR>gv=gv", opts)
+vim.keymap.set('v', '<M-Down>', ":m '>+1<CR>gv=gv", opts)
+vim.keymap.set('v', '<M-k>', ":m '<-2<CR>gv=gv", opts)
+vim.keymap.set('v', '<M-Up>', ":m '<-2<CR>gv=gv", opts)
+
 
 -- 在 visual 模式下， <leader>j 合并选中多行成一行，换行变空格
 vim.keymap.set('v', '<C-S-j>', ':s/\\%V\\s*\\n\\s*/ /g<CR>', opts)

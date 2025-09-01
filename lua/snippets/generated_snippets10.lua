@@ -1,2130 +1,2344 @@
 -- Auto-generated LuaSnip snippets
-local ls = require("luasnip") -- 引入 LuaSnip
-local s = ls.snippet
-local t = ls.text_node
-local i = ls.insert_node
+local ls = require("luasnip")
+local ps = ls.parser.parse_snippet
 
 return {
 
+-- 06_String_Algorithms\Rolling_Hash\SingleHash.h
+ps("06_string_algorithms_rolling_hash_singlehash_h", [=[
+
+/*
+ * 单哈希滚动哈希
+ * 时间复杂度: 预处理O(n), 查询O(1)
+ * 空间复杂度: O(n)
+ * 适用场景: 字符串哈希、子串比较、快速字符串匹配
+ */
+struct SingleHash {
+    static const int MOD = 1e9 + 7;
+    static const int BASE = 31;
+
+    vector<long long> hash, power;
+    string s;
+    int n;
+
+    SingleHash(const string& str) : s(str), n(str.length()) {
+        hash.resize(n + 1);
+        power.resize(n + 1);
+        build();
+    }
+
+   private:
+    void build() {
+        power[0] = 1;
+        hash[0] = 0;
+
+        for (int i = 0; i < n; i++) {
+            power[i + 1] = (power[i] * BASE) % MOD;
+            hash[i + 1] = (hash[i] * BASE + (s[i] - 'a' + 1)) % MOD;
+        }
+    }
+
+   public:
+    // 获取子串s[l..r]的哈希值
+    long long get_hash(int l, int r) const {
+        long long result = (hash[r + 1] - (hash[l] * power[r - l + 1]) % MOD + MOD) % MOD;
+        return result;
+    }
+
+    // 比较两个子串是否相等
+    bool equal(int l1, int r1, int l2, int r2) const { return get_hash(l1, r1) == get_hash(l2, r2); }
+
+    // 计算字符串哈希值（静态方法）
+    static long long compute_hash(const string& str) {
+        long long result = 0;
+        long long pow = 1;
+
+        for (char c : str) {
+            result = (result + (c - 'a' + 1) * pow) % MOD;
+            pow = (pow * BASE) % MOD;
+        }
+
+        return result;
+    }
+
+    // 在文本中查找模式串
+    vector<int> find_pattern(const string& pattern) const {
+        vector<int> positions;
+        if (pattern.length() > n) return positions;
+
+        long long pattern_hash = compute_hash(pattern);
+        int len = pattern.length();
+
+        for (int i = 0; i <= n - len; i++) {
+            if (get_hash(i, i + len - 1) == pattern_hash) {
+                // 双重检查避免哈希冲突
+                bool match = true;
+                for (int j = 0; j < len; j++) {
+                    if (s[i + j] != pattern[j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) { positions.push_back(i); }
+            }
+        }
+
+        return positions;
+    }
+
+    // 最长公共前缀
+    int lcp(int i, int j) const {
+        int left = 0, right = min(n - i, n - j);
+        int result = 0;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            if (equal(i, i + mid - 1, j, j + mid - 1)) {
+                result = mid;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return result;
+    }
+
+    // 计算所有长度为k的子串的哈希值
+    vector<long long> get_all_substrings_hash(int k) const {
+        vector<long long> hashes;
+        if (k > n) return hashes;
+
+        for (int i = 0; i <= n - k; i++) { hashes.push_back(get_hash(i, i + k - 1)); }
+
+        return hashes;
+    }
+
+    // 找到最长重复子串
+    pair<int, int> longest_repeated_substring() const {
+        int left = 1, right = n;
+        int max_len = 0;
+        int position = -1;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+
+            unordered_map<long long, int> hash_pos;
+            bool found = false;
+
+            for (int i = 0; i <= n - mid; i++) {
+                long long h = get_hash(i, i + mid - 1);
+                if (hash_pos.count(h)) {
+                    max_len = mid;
+                    position = hash_pos[h];
+                    found = true;
+                    break;
+                } else {
+                    hash_pos[h] = i;
+                }
+            }
+
+            if (found) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        return {max_len, position};
+    }
+
+    // 计算字符串的周期
+    vector<int> find_periods() const {
+        vector<int> periods;
+
+        for (int period = 1; period <= n / 2; period++) {
+            bool is_period = true;
+
+            for (int i = 0; i + period < n; i++) {
+                if (!equal(i, i, i + period, i + period)) {
+                    is_period = false;
+                    break;
+                }
+            }
+
+            if (is_period) { periods.push_back(period); }
+        }
+
+        return periods;
+    }
+};
+
+// 增量哈希 - 支持动态修改
+struct IncrementalHash {
+    static const int MOD = 1e9 + 7;
+    static const int BASE = 31;
+
+    vector<long long> hash, power;
+    string s;
+    int n;
+
+    IncrementalHash(const string& str) : s(str), n(str.length()) {
+        hash.resize(n + 1);
+        power.resize(n + 1);
+        build();
+    }
+
+   private:
+    void build() {
+        power[0] = 1;
+        hash[0] = 0;
+
+        for (int i = 0; i < n; i++) {
+            power[i + 1] = (power[i] * BASE) % MOD;
+            hash[i + 1] = (hash[i] * BASE + (s[i] - 'a' + 1)) % MOD;
+        }
+    }
+
+    long long mod_pow(long long base, long long exp, long long mod) const {
+        long long result = 1;
+        while (exp > 0) {
+            if (exp % 2 == 1) { result = (result * base) % mod; }
+            base = (base * base) % mod;
+            exp /= 2;
+        }
+        return result;
+    }
+
+    long long mod_inverse(long long a) const { return mod_pow(a, MOD - 2, MOD); }
+
+   public:
+    // 修改位置i的字符
+    void update(int i, char new_char) {
+        long long old_contrib = ((s[i] - 'a' + 1) * power[n - i - 1]) % MOD;
+        long long new_contrib = ((new_char - 'a' + 1) * power[n - i - 1]) % MOD;
+
+        for (int j = i + 1; j <= n; j++) { hash[j] = (hash[j] - old_contrib + new_contrib + MOD) % MOD; }
+
+        s[i] = new_char;
+    }
+
+    // 获取子串哈希值
+    long long get_hash(int l, int r) const {
+        long long result = (hash[r + 1] - (hash[l] * power[r - l + 1]) % MOD + MOD) % MOD;
+        return result;
+    }
+
+    // 插入字符（在位置i之前插入）
+    void insert(int i, char c) {
+        s.insert(i, 1, c);
+        n++;
+
+        // 重新构建（简化实现）
+        hash.resize(n + 1);
+        power.resize(n + 1);
+        build();
+    }
+
+    // 删除位置i的字符
+    void erase(int i) {
+        s.erase(i, 1);
+        n--;
+
+        // 重新构建（简化实现）
+        hash.resize(n + 1);
+        power.resize(n + 1);
+        build();
+    }
+};
+]=]),
+
 -- 06_String_Algorithms\Suffix_Structures\LCP.h
-s("06_string_algorithms_suffix_structures_lcp_h", {
-	t({
-		"/**",
-		" * LCP数组和相关算法",
-		" * 功能：基于后缀数组构建LCP数组，支持快速LCP查询和各种字符串分析",
-		" * 时间复杂度：构建 O(n)，RMQ查询 O(log n)",
-		" * 空间复杂度：O(n log n)",
-		" * 适用场景：最长公共前缀查询、字符串分析、后缀树模拟",
-		" */",
-		"struct LCPArray {",
-		"    vector<int> lcp;",
-		"    vector<int> sa, rk;",
-		"    string s;",
-		"    int n;",
-		"",
-		"    LCPArray(const vector<int>& suffix_array, const string& str) : sa(suffix_array), s(str), n(str.length()) {",
-		"        build_rank();",
-		"        build_lcp();",
-		"    }",
-		"",
-		"   private:",
-		"    void build_rank() {",
-		"        rk.resize(n);",
-		"        for (int i = 0; i < n; i++) { rk[sa[i]] = i; }",
-		"    }",
-		"",
-		"    void build_lcp() {",
-		"        lcp.resize(n);",
-		"        int k = 0;",
-		"        for (int i = 0; i < n; i++) {",
-		"            if (rk[i] == 0) {",
-		"                lcp[0] = 0;",
-		"                k = 0;",
-		"                continue;",
-		"            }",
-		"            if (k > 0) k--;",
-		"            int j = sa[rk[i] - 1];",
-		"            while (i + k < n && j + k < n && s[i + k] == s[j + k]) k++;",
-		"            lcp[rk[i]] = k;",
-		"        }",
-		"    }",
-		"",
-		"   public:",
-		"    // 获取LCP数组",
-		"    vector<int> get_lcp() const { return lcp; }",
-		"",
-		"    // 计算两个后缀的LCP (朴素方法)",
-		"    int suffix_lcp(int i, int j) const {",
-		"        if (i == j) return n - i;",
-		"        int ri = rk[i], rj = rk[j];",
-		"        if (ri > rj) swap(ri, rj);",
-		"        int res = lcp[ri + 1];",
-		"        for (int k = ri + 2; k <= rj; k++) { res = min(res, lcp[k]); }",
-		"        return res;",
-		"    }",
-		"",
-		"    // 使用单调栈计算LCP的应用",
-		"    // 计算以每个位置为右端点的最长公共前缀区间",
-		"    vector<pair<int, int>> longest_common_prefix_intervals() const {",
-		"        vector<pair<int, int>> intervals(n);",
-		"        stack<pair<int, int>> st;  // {lcp_value, start_index}",
-		"",
-		"        for (int i = 0; i < n; i++) {",
-		"            int start = i;",
-		"            while (!st.empty() && st.top().first > lcp[i]) {",
-		"                auto [val, idx] = st.top();",
-		"                st.pop();",
-		"                intervals[i - 1] = {val, idx};",
-		"                start = idx;",
-		"            }",
-		"            if (st.empty() || st.top().first < lcp[i]) { st.push({lcp[i], start}); }",
-		"        }",
-		"",
-		"        while (!st.empty()) {",
-		"            auto [val, idx] = st.top();",
-		"            st.pop();",
-		"            intervals[n - 1] = {val, idx};",
-		"        }",
-		"",
-		"        return intervals;",
-		"    }",
-		"",
-		"    // 计算重复子串",
-		"    vector<tuple<int, int, int>> find_repeated_substrings(int min_length = 1) const {",
-		"        vector<tuple<int, int, int>> result;  // {length, start, count}",
-		"",
-		"        for (int i = 1; i < n; i++) {",
-		"            if (lcp[i] >= min_length) {",
-		"                // 找到相同前缀的区间",
-		"                int j = i;",
-		"                while (j < n && lcp[j] >= lcp[i]) j++;",
-		"",
-		"                int count = j - i + 1;",
-		"                result.push_back({lcp[i], sa[i], count});",
-		"",
-		"                i = j - 1;  // 跳过已处理的部分",
-		"            }",
-		"        }",
-		"",
-		"        return result;",
-		"    }",
-		"",
-		"    // 计算最长重复子串",
-		"    pair<int, int> longest_repeated_substring() const {",
-		"        int max_len = 0, pos = -1;",
-		"        for (int i = 1; i < n; i++) {",
-		"            if (lcp[i] > max_len) {",
-		"                max_len = lcp[i];",
-		"                pos = sa[i];",
-		"            }",
-		"        }",
-		"        return {max_len, pos};",
-		"    }",
-		"",
-		"    // 计算出现次数至少为k的最长重复子串",
-		"    pair<int, int> longest_repeated_substring_k_times(int k) const {",
-		"        int max_len = 0, pos = -1;",
-		"",
-		"        for (int len = 1; len <= n; len++) {",
-		"            vector<int> groups;",
-		"            int count = 1;",
-		"",
-		"            for (int i = 1; i < n; i++) {",
-		"                if (lcp[i] >= len) {",
-		"                    count++;",
-		"                } else {",
-		"                    if (count >= k) { groups.push_back(len); }",
-		"                    count = 1;",
-		"                }",
-		"            }",
-		"            if (count >= k) { groups.push_back(len); }",
-		"",
-		"            if (!groups.empty() && len > max_len) {",
-		"                max_len = len;",
-		"                // 找到第一个长度为len的重复子串位置",
-		"                count = 1;",
-		"                for (int i = 1; i < n; i++) {",
-		"                    if (lcp[i] >= len) {",
-		"                        count++;",
-		"                        if (count == k) {",
-		"                            pos = sa[i - count + 1];",
-		"                            break;",
-		"                        }",
-		"                    } else {",
-		"                        count = 1;",
-		"                    }",
-		"                }",
-		"            }",
-		"        }",
-		"",
-		"        return {max_len, pos};",
-		"    }",
-		"",
-		"    // 计算不重叠的最长重复子串",
-		"    pair<int, vector<int>> non_overlapping_repeated_substring() const {",
-		"        int max_len = 0;",
-		"        vector<int> positions;",
-		"",
-		"        for (int len = n / 2; len >= 1; len--) {",
-		"            vector<int> candidates;",
-		"",
-		"            for (int i = 1; i < n; i++) {",
-		"                if (lcp[i] >= len) {",
-		"                    candidates.push_back(sa[i - 1]);",
-		"                    candidates.push_back(sa[i]);",
-		"                }",
-		"            }",
-		"",
-		"            if (candidates.empty()) continue;",
-		"",
-		"            sort(candidates.begin(), candidates.end());",
-		"            candidates.erase(unique(candidates.begin(), candidates.end()), candidates.end());",
-		"",
-		"            // 贪心选择不重叠的子串",
-		"            vector<int> selected;",
-		"            int last_end = -1;",
-		"",
-		"            for (int pos : candidates) {",
-		"                if (pos >= last_end) {",
-		"                    selected.push_back(pos);",
-		"                    last_end = pos + len;",
-		"                }",
-		"            }",
-		"",
-		"            if (selected.size() >= 2) {",
-		"                max_len = len;",
-		"                positions = selected;",
-		"                break;",
-		"            }",
-		"        }",
-		"",
-		"        return {max_len, positions};",
-		"    }",
-		"",
-		"    // 计算所有回文子串（结合Manacher算法思想）",
-		"    vector<pair<int, int>> palindromic_substrings() const {",
-		"        vector<pair<int, int>> palindromes;",
-		"",
-		"        // 这里需要构造一个新的字符串来检测回文",
-		"        string rev_s = s;",
-		"        reverse(rev_s.begin(), rev_s.end());",
-		"",
-		"        // 使用后缀数组的思想来找回文",
-		"        // 实际应用中建议结合其他算法如Manacher",
-		"",
-		"        return palindromes;",
-		"    }",
-		"};",
-		"",
-		"// 稀疏表优化的LCP查询",
-		"struct SparseLCP {",
-		"    vector<vector<int>> st;",
-		"    vector<int> lg;",
-		"    int n;",
-		"",
-		"    SparseLCP(const vector<int>& lcp) {",
-		"        n = lcp.size();",
-		"        lg.resize(n + 1);",
-		"        for (int i = 2; i <= n; i++) { lg[i] = lg[i / 2] + 1; }",
-		"",
-		"        st.assign(lg[n] + 1, vector<int>(n));",
-		"        copy(lcp.begin(), lcp.end(), st[0].begin());",
-		"",
-		"        for (int i = 1; i <= lg[n]; i++) {",
-		"            for (int j = 0; j + (1 << i) <= n; j++) { st[i][j] = min(st[i - 1][j], st[i - 1][j + (1 << (i - 1))]); }",
-		"        }",
-		"    }",
-		"",
-		"    // O(1) 查询区间最小值",
-		"    int query(int l, int r) const {",
-		"        if (l > r) return 0;",
-		"        int k = lg[r - l + 1];",
-		"        return min(st[k][l], st[k][r - (1 << k) + 1]);",
-		"    }",
-		"",
-		"    // O(1) LCP查询（需要配合rank数组）",
-		"    int lcp_query(int i, int j, const vector<int>& rk) const {",
-		"        if (i == j) return n - i;",
-		"        int ri = rk[i], rj = rk[j];",
-		"        if (ri > rj) swap(ri, rj);",
-		"        return query(ri + 1, rj);",
-		"    }",
-		"};",
-	})
-}),
+ps("06_string_algorithms_suffix_structures_lcp_h", [=[
+
+/**
+ * LCP数组和相关算法
+ * 功能：基于后缀数组构建LCP数组，支持快速LCP查询和各种字符串分析
+ * 时间复杂度：构建 O(n)，RMQ查询 O(log n)
+ * 空间复杂度：O(n log n)
+ * 适用场景：最长公共前缀查询、字符串分析、后缀树模拟
+ */
+struct LCPArray {
+    vector<int> lcp;
+    vector<int> sa, rk;
+    string s;
+    int n;
+
+    LCPArray(const vector<int>& suffix_array, const string& str) : sa(suffix_array), s(str), n(str.length()) {
+        build_rank();
+        build_lcp();
+    }
+
+   private:
+    void build_rank() {
+        rk.resize(n);
+        for (int i = 0; i < n; i++) { rk[sa[i]] = i; }
+    }
+
+    void build_lcp() {
+        lcp.resize(n);
+        int k = 0;
+        for (int i = 0; i < n; i++) {
+            if (rk[i] == 0) {
+                lcp[0] = 0;
+                k = 0;
+                continue;
+            }
+            if (k > 0) k--;
+            int j = sa[rk[i] - 1];
+            while (i + k < n && j + k < n && s[i + k] == s[j + k]) k++;
+            lcp[rk[i]] = k;
+        }
+    }
+
+   public:
+    // 获取LCP数组
+    vector<int> get_lcp() const { return lcp; }
+
+    // 计算两个后缀的LCP (朴素方法)
+    int suffix_lcp(int i, int j) const {
+        if (i == j) return n - i;
+        int ri = rk[i], rj = rk[j];
+        if (ri > rj) swap(ri, rj);
+        int res = lcp[ri + 1];
+        for (int k = ri + 2; k <= rj; k++) { res = min(res, lcp[k]); }
+        return res;
+    }
+
+    // 使用单调栈计算LCP的应用
+    // 计算以每个位置为右端点的最长公共前缀区间
+    vector<pair<int, int>> longest_common_prefix_intervals() const {
+        vector<pair<int, int>> intervals(n);
+        stack<pair<int, int>> st;  // {lcp_value, start_index}
+
+        for (int i = 0; i < n; i++) {
+            int start = i;
+            while (!st.empty() && st.top().first > lcp[i]) {
+                auto [val, idx] = st.top();
+                st.pop();
+                intervals[i - 1] = {val, idx};
+                start = idx;
+            }
+            if (st.empty() || st.top().first < lcp[i]) { st.push({lcp[i], start}); }
+        }
+
+        while (!st.empty()) {
+            auto [val, idx] = st.top();
+            st.pop();
+            intervals[n - 1] = {val, idx};
+        }
+
+        return intervals;
+    }
+
+    // 计算重复子串
+    vector<tuple<int, int, int>> find_repeated_substrings(int min_length = 1) const {
+        vector<tuple<int, int, int>> result;  // {length, start, count}
+
+        for (int i = 1; i < n; i++) {
+            if (lcp[i] >= min_length) {
+                // 找到相同前缀的区间
+                int j = i;
+                while (j < n && lcp[j] >= lcp[i]) j++;
+
+                int count = j - i + 1;
+                result.push_back({lcp[i], sa[i], count});
+
+                i = j - 1;  // 跳过已处理的部分
+            }
+        }
+
+        return result;
+    }
+
+    // 计算最长重复子串
+    pair<int, int> longest_repeated_substring() const {
+        int max_len = 0, pos = -1;
+        for (int i = 1; i < n; i++) {
+            if (lcp[i] > max_len) {
+                max_len = lcp[i];
+                pos = sa[i];
+            }
+        }
+        return {max_len, pos};
+    }
+
+    // 计算出现次数至少为k的最长重复子串
+    pair<int, int> longest_repeated_substring_k_times(int k) const {
+        int max_len = 0, pos = -1;
+
+        for (int len = 1; len <= n; len++) {
+            vector<int> groups;
+            int count = 1;
+
+            for (int i = 1; i < n; i++) {
+                if (lcp[i] >= len) {
+                    count++;
+                } else {
+                    if (count >= k) { groups.push_back(len); }
+                    count = 1;
+                }
+            }
+            if (count >= k) { groups.push_back(len); }
+
+            if (!groups.empty() && len > max_len) {
+                max_len = len;
+                // 找到第一个长度为len的重复子串位置
+                count = 1;
+                for (int i = 1; i < n; i++) {
+                    if (lcp[i] >= len) {
+                        count++;
+                        if (count == k) {
+                            pos = sa[i - count + 1];
+                            break;
+                        }
+                    } else {
+                        count = 1;
+                    }
+                }
+            }
+        }
+
+        return {max_len, pos};
+    }
+
+    // 计算不重叠的最长重复子串
+    pair<int, vector<int>> non_overlapping_repeated_substring() const {
+        int max_len = 0;
+        vector<int> positions;
+
+        for (int len = n / 2; len >= 1; len--) {
+            vector<int> candidates;
+
+            for (int i = 1; i < n; i++) {
+                if (lcp[i] >= len) {
+                    candidates.push_back(sa[i - 1]);
+                    candidates.push_back(sa[i]);
+                }
+            }
+
+            if (candidates.empty()) continue;
+
+            sort(candidates.begin(), candidates.end());
+            candidates.erase(unique(candidates.begin(), candidates.end()), candidates.end());
+
+            // 贪心选择不重叠的子串
+            vector<int> selected;
+            int last_end = -1;
+
+            for (int pos : candidates) {
+                if (pos >= last_end) {
+                    selected.push_back(pos);
+                    last_end = pos + len;
+                }
+            }
+
+            if (selected.size() >= 2) {
+                max_len = len;
+                positions = selected;
+                break;
+            }
+        }
+
+        return {max_len, positions};
+    }
+
+    // 计算所有回文子串（结合Manacher算法思想）
+    vector<pair<int, int>> palindromic_substrings() const {
+        vector<pair<int, int>> palindromes;
+
+        // 这里需要构造一个新的字符串来检测回文
+        string rev_s = s;
+        reverse(rev_s.begin(), rev_s.end());
+
+        // 使用后缀数组的思想来找回文
+        // 实际应用中建议结合其他算法如Manacher
+
+        return palindromes;
+    }
+};
+
+// 稀疏表优化的LCP查询
+struct SparseLCP {
+    vector<vector<int>> st;
+    vector<int> lg;
+    int n;
+
+    SparseLCP(const vector<int>& lcp) {
+        n = lcp.size();
+        lg.resize(n + 1);
+        for (int i = 2; i <= n; i++) { lg[i] = lg[i / 2] + 1; }
+
+        st.assign(lg[n] + 1, vector<int>(n));
+        copy(lcp.begin(), lcp.end(), st[0].begin());
+
+        for (int i = 1; i <= lg[n]; i++) {
+            for (int j = 0; j + (1 << i) <= n; j++) { st[i][j] = min(st[i - 1][j], st[i - 1][j + (1 << (i - 1))]); }
+        }
+    }
+
+    // O(1) 查询区间最小值
+    int query(int l, int r) const {
+        if (l > r) return 0;
+        int k = lg[r - l + 1];
+        return min(st[k][l], st[k][r - (1 << k) + 1]);
+    }
+
+    // O(1) LCP查询（需要配合rank数组）
+    int lcp_query(int i, int j, const vector<int>& rk) const {
+        if (i == j) return n - i;
+        int ri = rk[i], rj = rk[j];
+        if (ri > rj) swap(ri, rj);
+        return query(ri + 1, rj);
+    }
+};
+]=]),
 
 -- 06_String_Algorithms\Suffix_Structures\SuffixArray.h
-s("06_string_algorithms_suffix_structures_suffixarray_h", {
-	t({
-		"/**",
-		" * 后缀数组（Suffix Array）",
-		" * 功能：构建字符串的后缀数组和LCP数组，支持各种字符串查询",
-		" * 时间复杂度：构建 O(n log n)，查询依具体操作而定",
-		" * 空间复杂度：O(n)",
-		" * 适用场景：字符串匹配、最长公共前缀、子串计数、字典序比较",
-		" */",
-		"struct SuffixArray {",
-		"    string s;",
-		"    int n;",
-		"    vector<int> sa, rank, lcp;",
-		"",
-		"    SuffixArray(const string& str) : s(str), n(str.length()) {",
-		"        build_sa();",
-		"        build_lcp();",
-		"    }",
-		"",
-		"    void build_sa() {",
-		"        sa.resize(n);",
-		"        rank.resize(n);",
-		"",
-		"        vector<int> cnt(256, 0);",
-		"        for (int i = 0; i < n; i++) cnt[s[i]]++;",
-		"        for (int i = 1; i < 256; i++) cnt[i] += cnt[i - 1];",
-		"        for (int i = n - 1; i >= 0; i--) sa[--cnt[s[i]]] = i;",
-		"",
-		"        rank[sa[0]] = 0;",
-		"        for (int i = 1; i < n; i++) { rank[sa[i]] = rank[sa[i - 1]] + (s[sa[i]] != s[sa[i - 1]]); }",
-		"",
-		"        for (int k = 1; k < n; k <<= 1) {",
-		"            auto cmp = [&](int i, int j) {",
-		"                if (rank[i] != rank[j]) return rank[i] < rank[j];",
-		"                int ri = (i + k < n) ? rank[i + k] : -1;",
-		"                int rj = (j + k < n) ? rank[j + k] : -1;",
-		"                return ri < rj;",
-		"            };",
-		"",
-		"            sort(sa.begin(), sa.end(), cmp);",
-		"",
-		"            vector<int> new_rank(n);",
-		"            new_rank[sa[0]] = 0;",
-		"            for (int i = 1; i < n; i++) { new_rank[sa[i]] = new_rank[sa[i - 1]] + cmp(sa[i - 1], sa[i]); }",
-		"            rank = new_rank;",
-		"",
-		"            if (rank[sa[n - 1]] == n - 1) break;",
-		"        }",
-		"    }",
-		"",
-		"    void build_lcp() {",
-		"        lcp.resize(n - 1);",
-		"        int k = 0;",
-		"",
-		"        for (int i = 0; i < n; i++) {",
-		"            if (rank[i] == n - 1) {",
-		"                k = 0;",
-		"                continue;",
-		"            }",
-		"",
-		"            int j = sa[rank[i] + 1];",
-		"            while (i + k < n && j + k < n && s[i + k] == s[j + k]) k++;",
-		"            lcp[rank[i]] = k;",
-		"",
-		"            if (k > 0) k--;",
-		"        }",
-		"    }",
-		"",
-		"    // 比较两个后缀的字典序",
-		"    bool suffix_compare(int i, int j) { return rank[i] < rank[j]; }",
-		"",
-		"    // 查找字符串t在s中的所有出现位置",
-		"    vector<int> find_all_occurrences(const string& t) {",
-		"        vector<int> result;",
-		"        int m = t.length();",
-		"",
-		"        // 二分查找第一个匹配位置",
-		"        int left = 0, right = n - 1;",
-		"        while (left <= right) {",
-		"            int mid = (left + right) / 2;",
-		"            string suffix = s.substr(sa[mid], min(m, n - sa[mid]));",
-		"            if (suffix < t) {",
-		"                left = mid + 1;",
-		"            } else {",
-		"                right = mid - 1;",
-		"            }",
-		"        }",
-		"",
-		"        int start = left;",
-		"",
-		"        // 二分查找最后一个匹配位置",
-		"        left = 0;",
-		"        right = n - 1;",
-		"        while (left <= right) {",
-		"            int mid = (left + right) / 2;",
-		"            string suffix = s.substr(sa[mid], min(m, n - sa[mid]));",
-		"            if (suffix <= t) {",
-		"                left = mid + 1;",
-		"            } else {",
-		"                right = mid - 1;",
-		"            }",
-		"        }",
-		"",
-		"        int end = right;",
-		"",
-		"        // 收集所有匹配位置",
-		"        for (int i = start; i <= end; i++) {",
-		"            if (sa[i] + m <= n && s.substr(sa[i], m) == t) { result.push_back(sa[i]); }",
-		"        }",
-		"",
-		"        return result;",
-		"    }",
-		"",
-		"    // 最长公共前缀查询（区间最小值查询）",
-		"    int query_lcp(int i, int j) {",
-		"        if (i == j) return n - i;",
-		"",
-		"        int ri = rank[i], rj = rank[j];",
-		"        if (ri > rj) swap(ri, rj);",
-		"",
-		"        int min_lcp = lcp[ri];",
-		"        for (int k = ri + 1; k < rj; k++) { min_lcp = min(min_lcp, lcp[k]); }",
-		"",
-		"        return min_lcp;",
-		"    }",
-		"",
-		"    // 字典序第k小的后缀",
-		"    int kth_suffix(int k) { return sa[k]; }",
-		"",
-		"    // 后缀的排名",
-		"    int suffix_rank(int i) { return rank[i]; }",
-		"",
-		"    // 不同子串的数量",
-		"    long long distinct_substrings() {",
-		"        long long total = (long long)n * (n + 1) / 2;",
-		"        for (int i = 0; i < n - 1; i++) { total -= lcp[i]; }",
-		"        return total;",
-		"    }",
-		"};",
-	})
-}),
+ps("06_string_algorithms_suffix_structures_suffixarray_h", [=[
+
+/**
+ * 后缀数组（Suffix Array）
+ * 功能：构建字符串的后缀数组和LCP数组，支持各种字符串查询
+ * 时间复杂度：构建 O(n log n)，查询依具体操作而定
+ * 空间复杂度：O(n)
+ * 适用场景：字符串匹配、最长公共前缀、子串计数、字典序比较
+ */
+struct SuffixArray {
+    string s;
+    int n;
+    vector<int> sa, rank, lcp;
+
+    SuffixArray(const string& str) : s(str), n(str.length()) {
+        build_sa();
+        build_lcp();
+    }
+
+    void build_sa() {
+        sa.resize(n);
+        rank.resize(n);
+
+        vector<int> cnt(256, 0);
+        for (int i = 0; i < n; i++) cnt[s[i]]++;
+        for (int i = 1; i < 256; i++) cnt[i] += cnt[i - 1];
+        for (int i = n - 1; i >= 0; i--) sa[--cnt[s[i]]] = i;
+
+        rank[sa[0]] = 0;
+        for (int i = 1; i < n; i++) { rank[sa[i]] = rank[sa[i - 1]] + (s[sa[i]] != s[sa[i - 1]]); }
+
+        for (int k = 1; k < n; k <<= 1) {
+            auto cmp = [&](int i, int j) {
+                if (rank[i] != rank[j]) return rank[i] < rank[j];
+                int ri = (i + k < n) ? rank[i + k] : -1;
+                int rj = (j + k < n) ? rank[j + k] : -1;
+                return ri < rj;
+            };
+
+            sort(sa.begin(), sa.end(), cmp);
+
+            vector<int> new_rank(n);
+            new_rank[sa[0]] = 0;
+            for (int i = 1; i < n; i++) { new_rank[sa[i]] = new_rank[sa[i - 1]] + cmp(sa[i - 1], sa[i]); }
+            rank = new_rank;
+
+            if (rank[sa[n - 1]] == n - 1) break;
+        }
+    }
+
+    void build_lcp() {
+        lcp.resize(n - 1);
+        int k = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (rank[i] == n - 1) {
+                k = 0;
+                continue;
+            }
+
+            int j = sa[rank[i] + 1];
+            while (i + k < n && j + k < n && s[i + k] == s[j + k]) k++;
+            lcp[rank[i]] = k;
+
+            if (k > 0) k--;
+        }
+    }
+
+    // 比较两个后缀的字典序
+    bool suffix_compare(int i, int j) { return rank[i] < rank[j]; }
+
+    // 查找字符串t在s中的所有出现位置
+    vector<int> find_all_occurrences(const string& t) {
+        vector<int> result;
+        int m = t.length();
+
+        // 二分查找第一个匹配位置
+        int left = 0, right = n - 1;
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            string suffix = s.substr(sa[mid], min(m, n - sa[mid]));
+            if (suffix < t) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        int start = left;
+
+        // 二分查找最后一个匹配位置
+        left = 0;
+        right = n - 1;
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            string suffix = s.substr(sa[mid], min(m, n - sa[mid]));
+            if (suffix <= t) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+
+        int end = right;
+
+        // 收集所有匹配位置
+        for (int i = start; i <= end; i++) {
+            if (sa[i] + m <= n && s.substr(sa[i], m) == t) { result.push_back(sa[i]); }
+        }
+
+        return result;
+    }
+
+    // 最长公共前缀查询（区间最小值查询）
+    int query_lcp(int i, int j) {
+        if (i == j) return n - i;
+
+        int ri = rank[i], rj = rank[j];
+        if (ri > rj) swap(ri, rj);
+
+        int min_lcp = lcp[ri];
+        for (int k = ri + 1; k < rj; k++) { min_lcp = min(min_lcp, lcp[k]); }
+
+        return min_lcp;
+    }
+
+    // 字典序第k小的后缀
+    int kth_suffix(int k) { return sa[k]; }
+
+    // 后缀的排名
+    int suffix_rank(int i) { return rank[i]; }
+
+    // 不同子串的数量
+    long long distinct_substrings() {
+        long long total = (long long)n * (n + 1) / 2;
+        for (int i = 0; i < n - 1; i++) { total -= lcp[i]; }
+        return total;
+    }
+};
+]=]),
 
 -- 06_String_Algorithms\Suffix_Structures\SuffixTree.h
-s("06_string_algorithms_suffix_structures_suffixtree_h", {
-	t({
-		"/**",
-		" * 后缀树（Suffix Tree）",
-		" * 功能：构建字符串的后缀树，支持快速子串匹配、最长公共子串等操作",
-		" * 时间复杂度：构建 O(n)，查询 O(m)",
-		" * 空间复杂度：O(n)",
-		" * 适用场景：字符串匹配、最长公共子串、后缀相关查询",
-		" */",
-		"struct SuffixTree {",
-		"    struct Node {",
-		"        map<char, int> next;",
-		"        int start, end;  // 边标签的范围 [start, end)",
-		"        int suffix_link;",
-		"        int suffix_index;",
-		"",
-		"        Node() : start(-1), end(-1), suffix_link(-1), suffix_index(-1) {}",
-		"    };",
-		"",
-		"    string text;",
-		"    vector<Node> nodes;",
-		"    int node_count;",
-		"    int active_node, active_edge, active_length;",
-		"    int remaining;",
-		"    int root, leaf_end;",
-		"",
-		"    SuffixTree(const string& s) : text(s + \"$\"), node_count(0) {",
-		"        int n = text.length();",
-		"        leaf_end = n - 1;",
-		"        root = new_node(-1, -1);",
-		"        active_node = root;",
-		"        active_edge = -1;",
-		"        active_length = 0;",
-		"        remaining = 0;",
-		"",
-		"        for (int i = 0; i < n; i++) { extend(i); }",
-		"",
-		"        set_suffix_index(root, 0);",
-		"    }",
-		"",
-		"   private:",
-		"    int new_node(int start, int end) {",
-		"        nodes.push_back(Node());",
-		"        int idx = node_count++;",
-		"        nodes[idx].start = start;",
-		"        nodes[idx].end = end;",
-		"        return idx;",
-		"    }",
-		"",
-		"    int edge_length(int node) {",
-		"        if (nodes[node].end == -1) return leaf_end - nodes[node].start + 1;",
-		"        return nodes[node].end - nodes[node].start;",
-		"    }",
-		"",
-		"    bool walk_down(int node) {",
-		"        if (active_length >= edge_length(node)) {",
-		"            active_edge += edge_length(node);",
-		"            active_length -= edge_length(node);",
-		"            active_node = node;",
-		"            return true;",
-		"        }",
-		"        return false;",
-		"    }",
-		"",
-		"    void extend(int pos) {",
-		"        leaf_end = pos;",
-		"        remaining++;",
-		"        int last_new_node = -1;",
-		"",
-		"        while (remaining > 0) {",
-		"            if (active_length == 0) { active_edge = pos; }",
-		"",
-		"            char edge_char = text[active_edge];",
-		"            if (nodes[active_node].next.find(edge_char) == nodes[active_node].next.end()) {",
-		"                // 创建新叶子节点",
-		"                int leaf = new_node(pos, -1);",
-		"                nodes[active_node].next[edge_char] = leaf;",
-		"",
-		"                if (last_new_node != -1) {",
-		"                    nodes[last_new_node].suffix_link = active_node;",
-		"                    last_new_node = -1;",
-		"                }",
-		"            } else {",
-		"                int next_node = nodes[active_node].next[edge_char];",
-		"                if (walk_down(next_node)) { continue; }",
-		"",
-		"                if (text[nodes[next_node].start + active_length] == text[pos]) {",
-		"                    if (last_new_node != -1 && active_node != root) {",
-		"                        nodes[last_new_node].suffix_link = active_node;",
-		"                        last_new_node = -1;",
-		"                    }",
-		"                    active_length++;",
-		"                    break;",
-		"                }",
-		"",
-		"                // 分裂边",
-		"                int split = new_node(nodes[next_node].start, nodes[next_node].start + active_length);",
-		"                nodes[active_node].next[edge_char] = split;",
-		"",
-		"                int leaf = new_node(pos, -1);",
-		"                nodes[split].next[text[pos]] = leaf;",
-		"                nodes[next_node].start += active_length;",
-		"                nodes[split].next[text[nodes[next_node].start]] = next_node;",
-		"",
-		"                if (last_new_node != -1) { nodes[last_new_node].suffix_link = split; }",
-		"                last_new_node = split;",
-		"            }",
-		"",
-		"            remaining--;",
-		"            if (active_node == root && active_length > 0) {",
-		"                active_length--;",
-		"                active_edge = pos - remaining + 1;",
-		"            } else if (active_node != root) {",
-		"                active_node = nodes[active_node].suffix_link;",
-		"            }",
-		"        }",
-		"    }",
-		"",
-		"    void set_suffix_index(int node, int label_height) {",
-		"        bool is_leaf = true;",
-		"        for (auto& edge : nodes[node].next) {",
-		"            is_leaf = false;",
-		"            set_suffix_index(edge.second, label_height + edge_length(edge.second));",
-		"        }",
-		"        if (is_leaf) { nodes[node].suffix_index = text.length() - label_height; }",
-		"    }",
-		"",
-		"   public:",
-		"    // 检查子串是否存在",
-		"    bool contains(const string& pattern) {",
-		"        int current = root;",
-		"        int i = 0;",
-		"",
-		"        while (i < pattern.length()) {",
-		"            char c = pattern[i];",
-		"            if (nodes[current].next.find(c) == nodes[current].next.end()) { return false; }",
-		"",
-		"            int next_node = nodes[current].next[c];",
-		"            int start = nodes[next_node].start;",
-		"            int end = (nodes[next_node].end == -1) ? leaf_end : nodes[next_node].end;",
-		"",
-		"            for (int j = start; j <= end && i < pattern.length(); j++, i++) {",
-		"                if (text[j] != pattern[i]) { return false; }",
-		"            }",
-		"            current = next_node;",
-		"        }",
-		"        return true;",
-		"    }",
-		"",
-		"    // 获取所有后缀",
-		"    vector<int> get_all_suffixes() {",
-		"        vector<int> suffixes;",
-		"",
-		"        function<void(int)> dfs = [&](int node) {",
-		"            if (nodes[node].suffix_index != -1) { suffixes.push_back(nodes[node].suffix_index); }",
-		"            for (auto& edge : nodes[node].next) { dfs(edge.second); }",
-		"        };",
-		"",
-		"        dfs(root);",
-		"        return suffixes;",
-		"    }",
-		"};",
-	})
-}),
+ps("06_string_algorithms_suffix_structures_suffixtree_h", [=[
+
+/**
+ * 后缀树（Suffix Tree）
+ * 功能：构建字符串的后缀树，支持快速子串匹配、最长公共子串等操作
+ * 时间复杂度：构建 O(n)，查询 O(m)
+ * 空间复杂度：O(n)
+ * 适用场景：字符串匹配、最长公共子串、后缀相关查询
+ */
+struct SuffixTree {
+    struct Node {
+        map<char, int> next;
+        int start, end;  // 边标签的范围 [start, end)
+        int suffix_link;
+        int suffix_index;
+
+        Node() : start(-1), end(-1), suffix_link(-1), suffix_index(-1) {}
+    };
+
+    string text;
+    vector<Node> nodes;
+    int node_count;
+    int active_node, active_edge, active_length;
+    int remaining;
+    int root, leaf_end;
+
+    SuffixTree(const string& s) : text(s + "$"), node_count(0) {
+        int n = text.length();
+        leaf_end = n - 1;
+        root = new_node(-1, -1);
+        active_node = root;
+        active_edge = -1;
+        active_length = 0;
+        remaining = 0;
+
+        for (int i = 0; i < n; i++) { extend(i); }
+
+        set_suffix_index(root, 0);
+    }
+
+   private:
+    int new_node(int start, int end) {
+        nodes.push_back(Node());
+        int idx = node_count++;
+        nodes[idx].start = start;
+        nodes[idx].end = end;
+        return idx;
+    }
+
+    int edge_length(int node) {
+        if (nodes[node].end == -1) return leaf_end - nodes[node].start + 1;
+        return nodes[node].end - nodes[node].start;
+    }
+
+    bool walk_down(int node) {
+        if (active_length >= edge_length(node)) {
+            active_edge += edge_length(node);
+            active_length -= edge_length(node);
+            active_node = node;
+            return true;
+        }
+        return false;
+    }
+
+    void extend(int pos) {
+        leaf_end = pos;
+        remaining++;
+        int last_new_node = -1;
+
+        while (remaining > 0) {
+            if (active_length == 0) { active_edge = pos; }
+
+            char edge_char = text[active_edge];
+            if (nodes[active_node].next.find(edge_char) == nodes[active_node].next.end()) {
+                // 创建新叶子节点
+                int leaf = new_node(pos, -1);
+                nodes[active_node].next[edge_char] = leaf;
+
+                if (last_new_node != -1) {
+                    nodes[last_new_node].suffix_link = active_node;
+                    last_new_node = -1;
+                }
+            } else {
+                int next_node = nodes[active_node].next[edge_char];
+                if (walk_down(next_node)) { continue; }
+
+                if (text[nodes[next_node].start + active_length] == text[pos]) {
+                    if (last_new_node != -1 && active_node != root) {
+                        nodes[last_new_node].suffix_link = active_node;
+                        last_new_node = -1;
+                    }
+                    active_length++;
+                    break;
+                }
+
+                // 分裂边
+                int split = new_node(nodes[next_node].start, nodes[next_node].start + active_length);
+                nodes[active_node].next[edge_char] = split;
+
+                int leaf = new_node(pos, -1);
+                nodes[split].next[text[pos]] = leaf;
+                nodes[next_node].start += active_length;
+                nodes[split].next[text[nodes[next_node].start]] = next_node;
+
+                if (last_new_node != -1) { nodes[last_new_node].suffix_link = split; }
+                last_new_node = split;
+            }
+
+            remaining--;
+            if (active_node == root && active_length > 0) {
+                active_length--;
+                active_edge = pos - remaining + 1;
+            } else if (active_node != root) {
+                active_node = nodes[active_node].suffix_link;
+            }
+        }
+    }
+
+    void set_suffix_index(int node, int label_height) {
+        bool is_leaf = true;
+        for (auto& edge : nodes[node].next) {
+            is_leaf = false;
+            set_suffix_index(edge.second, label_height + edge_length(edge.second));
+        }
+        if (is_leaf) { nodes[node].suffix_index = text.length() - label_height; }
+    }
+
+   public:
+    // 检查子串是否存在
+    bool contains(const string& pattern) {
+        int current = root;
+        int i = 0;
+
+        while (i < pattern.length()) {
+            char c = pattern[i];
+            if (nodes[current].next.find(c) == nodes[current].next.end()) { return false; }
+
+            int next_node = nodes[current].next[c];
+            int start = nodes[next_node].start;
+            int end = (nodes[next_node].end == -1) ? leaf_end : nodes[next_node].end;
+
+            for (int j = start; j <= end && i < pattern.length(); j++, i++) {
+                if (text[j] != pattern[i]) { return false; }
+            }
+            current = next_node;
+        }
+        return true;
+    }
+
+    // 获取所有后缀
+    vector<int> get_all_suffixes() {
+        vector<int> suffixes;
+
+        function<void(int)> dfs = [&](int node) {
+            if (nodes[node].suffix_index != -1) { suffixes.push_back(nodes[node].suffix_index); }
+            for (auto& edge : nodes[node].next) { dfs(edge.second); }
+        };
+
+        dfs(root);
+        return suffixes;
+    }
+};
+]=]),
 
 -- 07_Search_and_Sort\Binary_Search\BinarySearch.h
-s("07_search_and_sort_binary_search_binarysearch_h", {
-	t({
-		"/**",
-		" * 二分搜索算法集合",
-		" * 功能：提供整数和实数的二分搜索模板",
-		" * 时间复杂度：O(log n)",
-		" * 空间复杂度：O(1)",
-		" * 适用场景：单调性搜索、最值查找、区间搜索",
-		" */",
-		"struct BinarySearch {",
-		"    // 整数二分搜索 - 查找最后一个满足条件的值",
-		"    template <typename T, typename F>",
-		"    static T binary_search_last(T lo, T hi, F check) {",
-		"        T ans = lo - 1;",
-		"        while (lo <= hi) {",
-		"            T mid = lo + (hi - lo) / 2;",
-		"            if (check(mid)) {",
-		"                ans = mid;",
-		"                lo = mid + 1;",
-		"            } else {",
-		"                hi = mid - 1;",
-		"            }",
-		"        }",
-		"        return ans;",
-		"    }",
-		"",
-		"    // 整数二分搜索 - 查找第一个满足条件的值",
-		"    template <typename T, typename F>",
-		"    static T binary_search_first(T lo, T hi, F check) {",
-		"        T ans = hi + 1;",
-		"        while (lo <= hi) {",
-		"            T mid = lo + (hi - lo) / 2;",
-		"            if (check(mid)) {",
-		"                ans = mid;",
-		"                hi = mid - 1;",
-		"            } else {",
-		"                lo = mid + 1;",
-		"            }",
-		"        }",
-		"        return ans;",
-		"    }",
-		"",
-		"    // 实数二分搜索",
-		"    template <typename F>",
-		"    static double binary_search_real(double lo, double hi, F check, double eps = 1e-9) {",
-		"        while (hi - lo > eps) {",
-		"            double mid = (lo + hi) / 2;",
-		"            if (check(mid)) {",
-		"                hi = mid;",
-		"            } else {",
-		"                lo = mid;",
-		"            }",
-		"        }",
-		"        return lo;",
-		"    }",
-		"",
-		"    // 三分搜索 - 查找单峰函数的最值",
-		"    template <typename F>",
-		"    static double ternary_search(double lo, double hi, F func, double eps = 1e-9) {",
-		"        while (hi - lo > eps) {",
-		"            double m1 = lo + (hi - lo) / 3;",
-		"            double m2 = hi - (hi - lo) / 3;",
-		"            if (func(m1) > func(m2)) {",
-		"                hi = m2;",
-		"            } else {",
-		"                lo = m1;",
-		"            }",
-		"        }",
-		"        return (lo + hi) / 2;",
-		"    }",
-		"};",
-	})
-}),
+ps("07_search_and_sort_binary_search_binarysearch_h", [=[
+
+/**
+ * 二分搜索算法集合
+ * 功能：提供整数和实数的二分搜索模板
+ * 时间复杂度：O(log n)
+ * 空间复杂度：O(1)
+ * 适用场景：单调性搜索、最值查找、区间搜索
+ */
+struct BinarySearch {
+    // 整数二分搜索 - 查找最后一个满足条件的值
+    template <typename T, typename F>
+    static T binary_search_last(T lo, T hi, F check) {
+        T ans = lo - 1;
+        while (lo <= hi) {
+            T mid = lo + (hi - lo) / 2;
+            if (check(mid)) {
+                ans = mid;
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
+        }
+        return ans;
+    }
+
+    // 整数二分搜索 - 查找第一个满足条件的值
+    template <typename T, typename F>
+    static T binary_search_first(T lo, T hi, F check) {
+        T ans = hi + 1;
+        while (lo <= hi) {
+            T mid = lo + (hi - lo) / 2;
+            if (check(mid)) {
+                ans = mid;
+                hi = mid - 1;
+            } else {
+                lo = mid + 1;
+            }
+        }
+        return ans;
+    }
+
+    // 实数二分搜索
+    template <typename F>
+    static double binary_search_real(double lo, double hi, F check, double eps = 1e-9) {
+        while (hi - lo > eps) {
+            double mid = (lo + hi) / 2;
+            if (check(mid)) {
+                hi = mid;
+            } else {
+                lo = mid;
+            }
+        }
+        return lo;
+    }
+
+    // 三分搜索 - 查找单峰函数的最值
+    template <typename F>
+    static double ternary_search(double lo, double hi, F func, double eps = 1e-9) {
+        while (hi - lo > eps) {
+            double m1 = lo + (hi - lo) / 3;
+            double m2 = hi - (hi - lo) / 3;
+            if (func(m1) > func(m2)) {
+                hi = m2;
+            } else {
+                lo = m1;
+            }
+        }
+        return (lo + hi) / 2;
+    }
+};
+]=]),
 
 -- 07_Search_and_Sort\Binary_Search\TernarySearch.h
-s("07_search_and_sort_binary_search_ternarysearch_h", {
-	t({
-		"/**",
-		" * 三分搜索算法",
-		" * 功能：在单峰/单谷函数上查找极值点",
-		" * 时间复杂度：O(log n)",
-		" * 空间复杂度：O(1)",
-		" * 适用场景：单峰函数最值查找、最优化问题",
-		" */",
-		"struct TernarySearch {",
-		"    // 实数三分搜索 - 查找单峰函数的最大值点",
-		"    template <typename F>",
-		"    static double find_maximum(double lo, double hi, F func, double eps = 1e-9) {",
-		"        while (hi - lo > eps) {",
-		"            double m1 = lo + (hi - lo) / 3;",
-		"            double m2 = hi - (hi - lo) / 3;",
-		"            if (func(m1) < func(m2)) {",
-		"                lo = m1;",
-		"            } else {",
-		"                hi = m2;",
-		"            }",
-		"        }",
-		"        return (lo + hi) / 2;",
-		"    }",
-		"",
-		"    // 实数三分搜索 - 查找单谷函数的最小值点",
-		"    template <typename F>",
-		"    static double find_minimum(double lo, double hi, F func, double eps = 1e-9) {",
-		"        while (hi - lo > eps) {",
-		"            double m1 = lo + (hi - lo) / 3;",
-		"            double m2 = hi - (hi - lo) / 3;",
-		"            if (func(m1) > func(m2)) {",
-		"                lo = m1;",
-		"            } else {",
-		"                hi = m2;",
-		"            }",
-		"        }",
-		"        return (lo + hi) / 2;",
-		"    }",
-		"",
-		"    // 整数三分搜索 - 查找单峰函数的最大值点",
-		"    template <typename F>",
-		"    static int find_maximum_int(int lo, int hi, F func) {",
-		"        while (hi - lo > 2) {",
-		"            int m1 = lo + (hi - lo) / 3;",
-		"            int m2 = hi - (hi - lo) / 3;",
-		"            if (func(m1) < func(m2)) {",
-		"                lo = m1;",
-		"            } else {",
-		"                hi = m2;",
-		"            }",
-		"        }",
-		"",
-		"        int best = lo;",
-		"        for (int i = lo + 1; i <= hi; i++) {",
-		"            if (func(i) > func(best)) { best = i; }",
-		"        }",
-		"        return best;",
-		"    }",
-		"",
-		"    // 整数三分搜索 - 查找单谷函数的最小值点",
-		"    template <typename F>",
-		"    static int find_minimum_int(int lo, int hi, F func) {",
-		"        while (hi - lo > 2) {",
-		"            int m1 = lo + (hi - lo) / 3;",
-		"            int m2 = hi - (hi - lo) / 3;",
-		"            if (func(m1) > func(m2)) {",
-		"                lo = m1;",
-		"            } else {",
-		"                hi = m2;",
-		"            }",
-		"        }",
-		"",
-		"        int best = lo;",
-		"        for (int i = lo + 1; i <= hi; i++) {",
-		"            if (func(i) < func(best)) { best = i; }",
-		"        }",
-		"        return best;",
-		"    }",
-		"};",
-	})
-}),
+ps("07_search_and_sort_binary_search_ternarysearch_h", [=[
+/**
+ * @brief 三分搜索算法模板 (C++20)
+ * @tparam T 数值类型 (浮点数或整数)
+ * @tparam F 可调用对象类型，接受 T 类型参数，返回可比较的类型
+ */
+struct TernarySearch {
+    // 浮点数三分 - 查找最大值
+    template <floating_point T, typename F>
+    static T find_maximum(T l, T r, F&& func) {
+        // 固定迭代次数是处理浮点数三分最稳健的方式
+        for (int i = 0; i < 100; ++i) {
+            T m1 = l + (r - l) / 3;
+            T m2 = r - (r - l) / 3;
+            if (invoke(func, m1) < invoke(func, m2)) {
+                l = m1;
+            } else {
+                r = m2;
+            }
+        }
+        return l;  // l 和 r 此时非常接近，返回任意一个均可
+    }
+
+    // 浮点数三分 - 查找最小值
+    template <floating_point T, typename F>
+    static T find_minimum(T l, T r, F&& func) {
+        for (int i = 0; i < 100; ++i) {
+            T m1 = l + (r - l) / 3;
+            T m2 = r - (r - l) / 3;
+            if (invoke(func, m1) > invoke(func, m2)) {
+                l = m1;
+            } else {
+                r = m2;
+            }
+        }
+        return l;
+    }
+
+    // 整数三分 - 查找最大值
+    template <integral T, typename F>
+    static T find_maximum_int(T l, T r, F&& func) {
+        while (r - l >= 3) {
+            T m1 = l + (r - l) / 3;
+            T m2 = r - (r - l) / 3;
+            if (invoke(func, m1) < invoke(func, m2)) {
+                l = m1;
+            } else {
+                r = m2;
+            }
+        }
+        // 区间足够小时，暴力查找
+        T best_x = l;
+        for (T i = l + 1; i <= r; ++i) {
+            if (invoke(func, i) > invoke(func, best_x)) {
+                best_x = i;
+            }
+        }
+        return best_x;
+    }
+
+    // 整数三分 - 查找最小值
+    template <integral T, typename F>
+    static T find_minimum_int(T l, T r, F&& func) {
+        while (r - l >= 3) {
+            T m1 = l + (r - l) / 3;
+            T m2 = r - (r - l) / 3;
+            if (invoke(func, m1) > invoke(func, m2)) {
+                l = m1;
+            } else {
+                r = m2;
+            }
+        }
+        T best_x = l;
+        for (T i = l + 1; i <= r; ++i) {
+            if (invoke(func, i) < invoke(func, best_x)) {
+                best_x = i;
+            }
+        }
+        return best_x;
+    }
+};
+
+// 使用示例
+// void solve() {
+//     auto f = [](double x) {
+//         return -1.0 * (x - 5.0) * (x - 5.0) + 10.0;
+//     };
+//     double peak_x = TernarySearch::find_maximum(0.0, 10.0, f);
+//     cout << fixed << setprecision(8);
+//     cout << "Peak is at x = " << peak_x << endl;
+//     cout << "Maximum value is f(x) = " << f(peak_x) << endl;
+// }
+]=]),
 
 -- 07_Search_and_Sort\Sorting\MergeSort.h
-s("07_search_and_sort_sorting_mergesort_h", {
-	t({
-		"/**",
-		" * 归并排序算法集合",
-		" * 功能：提供各种归并排序的实现，包括逆序对计数",
-		" * 时间复杂度：O(n log n)",
-		" * 空间复杂度：O(n)",
-		" * 适用场景：稳定排序、逆序对计数、分治算法",
-		" */",
-		"struct MergeSort {",
-		"    // 标准归并排序",
-		"    template <typename T>",
-		"    static void merge_sort(vector<T>& arr) {",
-		"        if (arr.size() <= 1) return;",
-		"        vector<T> temp(arr.size());",
-		"        merge_sort_helper(arr, 0, arr.size() - 1, temp);",
-		"    }",
-		"",
-		"   private:",
-		"    template <typename T>",
-		"    static void merge_sort_helper(vector<T>& arr, int left, int right, vector<T>& temp) {",
-		"        if (left >= right) return;",
-		"",
-		"        int mid = left + (right - left) / 2;",
-		"        merge_sort_helper(arr, left, mid, temp);",
-		"        merge_sort_helper(arr, mid + 1, right, temp);",
-		"        merge(arr, left, mid, right, temp);",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    static void merge(vector<T>& arr, int left, int mid, int right, vector<T>& temp) {",
-		"        int i = left, j = mid + 1, k = left;",
-		"",
-		"        while (i <= mid && j <= right) {",
-		"            if (arr[i] <= arr[j]) {",
-		"                temp[k++] = arr[i++];",
-		"            } else {",
-		"                temp[k++] = arr[j++];",
-		"            }",
-		"        }",
-		"",
-		"        while (i <= mid) temp[k++] = arr[i++];",
-		"        while (j <= right) temp[k++] = arr[j++];",
-		"",
-		"        for (i = left; i <= right; i++) { arr[i] = temp[i]; }",
-		"    }",
-		"",
-		"   public:",
-		"    // 计算逆序对数量",
-		"    template <typename T>",
-		"    static long long count_inversions(vector<T>& arr) {",
-		"        if (arr.size() <= 1) return 0;",
-		"        vector<T> temp(arr.size());",
-		"        return count_inversions_helper(arr, 0, arr.size() - 1, temp);",
-		"    }",
-		"",
-		"   private:",
-		"    template <typename T>",
-		"    static long long count_inversions_helper(vector<T>& arr, int left, int right, vector<T>& temp) {",
-		"        if (left >= right) return 0;",
-		"",
-		"        int mid = left + (right - left) / 2;",
-		"        long long inv_count = 0;",
-		"",
-		"        inv_count += count_inversions_helper(arr, left, mid, temp);",
-		"        inv_count += count_inversions_helper(arr, mid + 1, right, temp);",
-		"        inv_count += merge_and_count(arr, left, mid, right, temp);",
-		"",
-		"        return inv_count;",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    static long long merge_and_count(vector<T>& arr, int left, int mid, int right, vector<T>& temp) {",
-		"        int i = left, j = mid + 1, k = left;",
-		"        long long inv_count = 0;",
-		"",
-		"        while (i <= mid && j <= right) {",
-		"            if (arr[i] <= arr[j]) {",
-		"                temp[k++] = arr[i++];",
-		"            } else {",
-		"                temp[k++] = arr[j++];",
-		"                inv_count += (mid - i + 1);  // 所有左边剩余元素都与arr[j]构成逆序对",
-		"            }",
-		"        }",
-		"",
-		"        while (i <= mid) temp[k++] = arr[i++];",
-		"        while (j <= right) temp[k++] = arr[j++];",
-		"",
-		"        for (i = left; i <= right; i++) { arr[i] = temp[i]; }",
-		"",
-		"        return inv_count;",
-		"    }",
-		"",
-		"   public:",
-		"    // 自底向上的归并排序（迭代版本）",
-		"    template <typename T>",
-		"    static void merge_sort_iterative(vector<T>& arr) {",
-		"        int n = arr.size();",
-		"        if (n <= 1) return;",
-		"",
-		"        vector<T> temp(n);",
-		"",
-		"        for (int size = 1; size < n; size *= 2) {",
-		"            for (int left = 0; left < n - size; left += 2 * size) {",
-		"                int mid = left + size - 1;",
-		"                int right = min(left + 2 * size - 1, n - 1);",
-		"                merge(arr, left, mid, right, temp);",
-		"            }",
-		"        }",
-		"    }",
-		"};",
-	})
-}),
+ps("07_search_and_sort_sorting_mergesort_h", [=[
+
+/**
+ * 归并排序算法集合
+ * 功能：提供各种归并排序的实现，包括逆序对计数
+ * 时间复杂度：O(n log n)
+ * 空间复杂度：O(n)
+ * 适用场景：稳定排序、逆序对计数、分治算法
+ */
+struct MergeSort {
+    // 标准归并排序
+    template <typename T>
+    static void merge_sort(vector<T>& arr) {
+        if (arr.size() <= 1) return;
+        vector<T> temp(arr.size());
+        merge_sort_helper(arr, 0, arr.size() - 1, temp);
+    }
+
+   private:
+    template <typename T>
+    static void merge_sort_helper(vector<T>& arr, int left, int right, vector<T>& temp) {
+        if (left >= right) return;
+
+        int mid = left + (right - left) / 2;
+        merge_sort_helper(arr, left, mid, temp);
+        merge_sort_helper(arr, mid + 1, right, temp);
+        merge(arr, left, mid, right, temp);
+    }
+
+    template <typename T>
+    static void merge(vector<T>& arr, int left, int mid, int right, vector<T>& temp) {
+        int i = left, j = mid + 1, k = left;
+
+        while (i <= mid && j <= right) {
+            if (arr[i] <= arr[j]) {
+                temp[k++] = arr[i++];
+            } else {
+                temp[k++] = arr[j++];
+            }
+        }
+
+        while (i <= mid) temp[k++] = arr[i++];
+        while (j <= right) temp[k++] = arr[j++];
+
+        for (i = left; i <= right; i++) { arr[i] = temp[i]; }
+    }
+
+   public:
+    // 计算逆序对数量
+    template <typename T>
+    static long long count_inversions(vector<T>& arr) {
+        if (arr.size() <= 1) return 0;
+        vector<T> temp(arr.size());
+        return count_inversions_helper(arr, 0, arr.size() - 1, temp);
+    }
+
+   private:
+    template <typename T>
+    static long long count_inversions_helper(vector<T>& arr, int left, int right, vector<T>& temp) {
+        if (left >= right) return 0;
+
+        int mid = left + (right - left) / 2;
+        long long inv_count = 0;
+
+        inv_count += count_inversions_helper(arr, left, mid, temp);
+        inv_count += count_inversions_helper(arr, mid + 1, right, temp);
+        inv_count += merge_and_count(arr, left, mid, right, temp);
+
+        return inv_count;
+    }
+
+    template <typename T>
+    static long long merge_and_count(vector<T>& arr, int left, int mid, int right, vector<T>& temp) {
+        int i = left, j = mid + 1, k = left;
+        long long inv_count = 0;
+
+        while (i <= mid && j <= right) {
+            if (arr[i] <= arr[j]) {
+                temp[k++] = arr[i++];
+            } else {
+                temp[k++] = arr[j++];
+                inv_count += (mid - i + 1);  // 所有左边剩余元素都与arr[j]构成逆序对
+            }
+        }
+
+        while (i <= mid) temp[k++] = arr[i++];
+        while (j <= right) temp[k++] = arr[j++];
+
+        for (i = left; i <= right; i++) { arr[i] = temp[i]; }
+
+        return inv_count;
+    }
+
+   public:
+    // 自底向上的归并排序（迭代版本）
+    template <typename T>
+    static void merge_sort_iterative(vector<T>& arr) {
+        int n = arr.size();
+        if (n <= 1) return;
+
+        vector<T> temp(n);
+
+        for (int size = 1; size < n; size *= 2) {
+            for (int left = 0; left < n - size; left += 2 * size) {
+                int mid = left + size - 1;
+                int right = min(left + 2 * size - 1, n - 1);
+                merge(arr, left, mid, right, temp);
+            }
+        }
+    }
+};
+]=]),
 
 -- 07_Search_and_Sort\Sorting\QuickSort.h
-s("07_search_and_sort_sorting_quicksort_h", {
-	t({
-		"/**",
-		" * 快速排序算法集合",
-		" * 时间复杂度：平均O(n log n)，最坏O(n²)",
-		" * 空间复杂度：O(log n)（递归栈）",
-		" * 适用场景：通用排序，不稳定排序",
-		" */",
-		"struct QuickSort {",
-		"    // Lomuto分区方案",
-		"    template <typename T>",
-		"    static int partition(vector<T>& arr, int left, int right) {",
-		"        T pivot = arr[right];",
-		"        int i = left - 1;",
-		"",
-		"        for (int j = left; j < right; j++) {",
-		"            if (arr[j] <= pivot) {",
-		"                i++;",
-		"                swap(arr[i], arr[j]);",
-		"            }",
-		"        }",
-		"        swap(arr[i + 1], arr[right]);",
-		"        return i + 1;",
-		"    }",
-		"",
-		"    // Hoare分区方案",
-		"    template <typename T>",
-		"    static int hoare_partition(vector<T>& arr, int left, int right) {",
-		"        T pivot = arr[left];",
-		"        int i = left - 1, j = right + 1;",
-		"",
-		"        while (true) {",
-		"            do { i++; } while (arr[i] < pivot);",
-		"            do { j--; } while (arr[j] > pivot);",
-		"            if (i >= j) return j;",
-		"            swap(arr[i], arr[j]);",
-		"        }",
-		"    }",
-		"",
-		"    // 标准快速排序",
-		"    template <typename T>",
-		"    static void quicksort(vector<T>& arr, int left, int right) {",
-		"        if (left >= right) return;",
-		"",
-		"        int pivot = partition(arr, left, right);",
-		"        quicksort(arr, left, pivot - 1);",
-		"        quicksort(arr, pivot + 1, right);",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    static void quicksort(vector<T>& arr) {",
-		"        if (!arr.empty()) quicksort(arr, 0, arr.size() - 1);",
-		"    }",
-		"",
-		"    // 三路快速排序（处理重复元素）",
-		"    template <typename T>",
-		"    static pair<int, int> three_way_partition(vector<T>& arr, int left, int right) {",
-		"        T pivot = arr[left];",
-		"        int lt = left, i = left + 1, gt = right;",
-		"",
-		"        while (i <= gt) {",
-		"            if (arr[i] < pivot) {",
-		"                swap(arr[lt++], arr[i++]);",
-		"            } else if (arr[i] > pivot) {",
-		"                swap(arr[i], arr[gt--]);",
-		"            } else {",
-		"                i++;",
-		"            }",
-		"        }",
-		"",
-		"        return {lt, gt};",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    static void three_way_quicksort(vector<T>& arr, int left, int right) {",
-		"        if (left >= right) return;",
-		"",
-		"        auto [lt, gt] = three_way_partition(arr, left, right);",
-		"        three_way_quicksort(arr, left, lt - 1);",
-		"        three_way_quicksort(arr, gt + 1, right);",
-		"    }",
-		"",
-		"    // 随机化快速排序",
-		"    template <typename T>",
-		"    static void randomized_quicksort(vector<T>& arr, int left, int right) {",
-		"        if (left >= right) return;",
-		"",
-		"        int random_index = left + rand() % (right - left + 1);",
-		"        swap(arr[random_index], arr[right]);",
-		"",
-		"        int pivot = partition(arr, left, right);",
-		"        randomized_quicksort(arr, left, pivot - 1);",
-		"        randomized_quicksort(arr, pivot + 1, right);",
-		"    }",
-		"",
-		"    // 迭代版快速排序",
-		"    template <typename T>",
-		"    static void iterative_quicksort(vector<T>& arr) {",
-		"        if (arr.empty()) return;",
-		"",
-		"        stack<pair<int, int>> st;",
-		"        st.push({0, (int)arr.size() - 1});",
-		"",
-		"        while (!st.empty()) {",
-		"            auto [left, right] = st.top();",
-		"            st.pop();",
-		"",
-		"            if (left >= right) continue;",
-		"",
-		"            int pivot = partition(arr, left, right);",
-		"            st.push({left, pivot - 1});",
-		"            st.push({pivot + 1, right});",
-		"        }",
-		"    }",
-		"",
-		"    // 插入排序（用于混合排序）",
-		"    template <typename T>",
-		"    static void insertion_sort(vector<T>& arr, int left, int right) {",
-		"        for (int i = left + 1; i <= right; i++) {",
-		"            T key = arr[i];",
-		"            int j = i - 1;",
-		"            while (j >= left && arr[j] > key) {",
-		"                arr[j + 1] = arr[j];",
-		"                j--;",
-		"            }",
-		"            arr[j + 1] = key;",
-		"        }",
-		"    }",
-		"",
-		"    // 混合排序（小数组使用插入排序）",
-		"    template <typename T>",
-		"    static void hybrid_quicksort(vector<T>& arr, int left, int right, int threshold = 10) {",
-		"        if (left >= right) return;",
-		"",
-		"        if (right - left + 1 <= threshold) {",
-		"            insertion_sort(arr, left, right);",
-		"            return;",
-		"        }",
-		"",
-		"        int pivot = partition(arr, left, right);",
-		"        hybrid_quicksort(arr, left, pivot - 1, threshold);",
-		"        hybrid_quicksort(arr, pivot + 1, right, threshold);",
-		"    }",
-		"",
-		"    // 堆排序（用于内省排序）",
-		"    template <typename T>",
-		"    static void heapsort(vector<T>& arr, int left, int right) {",
-		"        vector<T> temp(arr.begin() + left, arr.begin() + right + 1);",
-		"        make_heap(temp.begin(), temp.end());",
-		"        sort_heap(temp.begin(), temp.end());",
-		"        copy(temp.begin(), temp.end(), arr.begin() + left);",
-		"    }",
-		"",
-		"    // 内省排序（Introsort）",
-		"    template <typename T>",
-		"    static void introsort_helper(vector<T>& arr, int left, int right, int depth_limit) {",
-		"        if (left >= right) return;",
-		"",
-		"        if (depth_limit == 0) {",
-		"            heapsort(arr, left, right);",
-		"            return;",
-		"        }",
-		"",
-		"        if (right - left + 1 <= 16) {",
-		"            insertion_sort(arr, left, right);",
-		"            return;",
-		"        }",
-		"",
-		"        int pivot = partition(arr, left, right);",
-		"        introsort_helper(arr, left, pivot - 1, depth_limit - 1);",
-		"        introsort_helper(arr, pivot + 1, right, depth_limit - 1);",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    static void introsort(vector<T>& arr) {",
-		"        if (arr.empty()) return;",
-		"        int max_depth = 2 * log2(arr.size());",
-		"        introsort_helper(arr, 0, arr.size() - 1, max_depth);",
-		"    }",
-		"",
-		"    // 尾递归优化",
-		"    template <typename T>",
-		"    static void tail_recursive_quicksort(vector<T>& arr, int left, int right) {",
-		"        while (left < right) {",
-		"            int pivot = partition(arr, left, right);",
-		"",
-		"            if (pivot - left < right - pivot) {",
-		"                tail_recursive_quicksort(arr, left, pivot - 1);",
-		"                left = pivot + 1;",
-		"            } else {",
-		"                tail_recursive_quicksort(arr, pivot + 1, right);",
-		"                right = pivot - 1;",
-		"            }",
-		"        }",
-		"    }",
-		"",
-		"    // 快速选择（第k小元素）",
-		"    template <typename T>",
-		"    static T quickselect(vector<T>& arr, int left, int right, int k) {",
-		"        if (left == right) return arr[left];",
-		"",
-		"        int pivot = partition(arr, left, right);",
-		"",
-		"        if (k == pivot) {",
-		"            return arr[k];",
-		"        } else if (k < pivot) {",
-		"            return quickselect(arr, left, pivot - 1, k);",
-		"        } else {",
-		"            return quickselect(arr, pivot + 1, right, k);",
-		"        }",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    static T kth_element(vector<T> arr, int k) {",
-		"        return quickselect(arr, 0, arr.size() - 1, k - 1);",
-		"    }",
-		"",
-		"    // 中位数的中位数选择pivot",
-		"    template <typename T>",
-		"    static T median_of_medians(vector<T>& arr, int left, int right, int k) {",
-		"        if (right - left < 5) {",
-		"            insertion_sort(arr, left, right);",
-		"            return arr[left + k];",
-		"        }",
-		"",
-		"        vector<T> medians;",
-		"        for (int i = left; i <= right; i += 5) {",
-		"            int group_right = min(i + 4, right);",
-		"            insertion_sort(arr, i, group_right);",
-		"            medians.push_back(arr[i + (group_right - i) / 2]);",
-		"        }",
-		"",
-		"        T pivot = median_of_medians(medians, 0, medians.size() - 1, medians.size() / 2);",
-		"",
-		"        int pivot_index = find(arr.begin() + left, arr.begin() + right + 1, pivot) - arr.begin();",
-		"        swap(arr[pivot_index], arr[right]);",
-		"",
-		"        int partition_index = partition(arr, left, right);",
-		"        int relative_pos = partition_index - left;",
-		"",
-		"        if (k == relative_pos) {",
-		"            return arr[partition_index];",
-		"        } else if (k < relative_pos) {",
-		"            return median_of_medians(arr, left, partition_index - 1, k);",
-		"        } else {",
-		"            return median_of_medians(arr, partition_index + 1, right, k - relative_pos - 1);",
-		"        }",
-		"    }",
-		"};",
-	})
-}),
+ps("07_search_and_sort_sorting_quicksort_h", [=[
+
+/**
+ * 快速排序算法集合
+ * 时间复杂度：平均O(n log n)，最坏O(n²)
+ * 空间复杂度：O(log n)（递归栈）
+ * 适用场景：通用排序，不稳定排序
+ */
+struct QuickSort {
+    // Lomuto分区方案
+    template <typename T>
+    static int partition(vector<T>& arr, int left, int right) {
+        T pivot = arr[right];
+        int i = left - 1;
+
+        for (int j = left; j < right; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr[i], arr[j]);
+            }
+        }
+        swap(arr[i + 1], arr[right]);
+        return i + 1;
+    }
+
+    // Hoare分区方案
+    template <typename T>
+    static int hoare_partition(vector<T>& arr, int left, int right) {
+        T pivot = arr[left];
+        int i = left - 1, j = right + 1;
+
+        while (true) {
+            do { i++; } while (arr[i] < pivot);
+            do { j--; } while (arr[j] > pivot);
+            if (i >= j) return j;
+            swap(arr[i], arr[j]);
+        }
+    }
+
+    // 标准快速排序
+    template <typename T>
+    static void quicksort(vector<T>& arr, int left, int right) {
+        if (left >= right) return;
+
+        int pivot = partition(arr, left, right);
+        quicksort(arr, left, pivot - 1);
+        quicksort(arr, pivot + 1, right);
+    }
+
+    template <typename T>
+    static void quicksort(vector<T>& arr) {
+        if (!arr.empty()) quicksort(arr, 0, arr.size() - 1);
+    }
+
+    // 三路快速排序（处理重复元素）
+    template <typename T>
+    static pair<int, int> three_way_partition(vector<T>& arr, int left, int right) {
+        T pivot = arr[left];
+        int lt = left, i = left + 1, gt = right;
+
+        while (i <= gt) {
+            if (arr[i] < pivot) {
+                swap(arr[lt++], arr[i++]);
+            } else if (arr[i] > pivot) {
+                swap(arr[i], arr[gt--]);
+            } else {
+                i++;
+            }
+        }
+
+        return {lt, gt};
+    }
+
+    template <typename T>
+    static void three_way_quicksort(vector<T>& arr, int left, int right) {
+        if (left >= right) return;
+
+        auto [lt, gt] = three_way_partition(arr, left, right);
+        three_way_quicksort(arr, left, lt - 1);
+        three_way_quicksort(arr, gt + 1, right);
+    }
+
+    // 随机化快速排序
+    template <typename T>
+    static void randomized_quicksort(vector<T>& arr, int left, int right) {
+        if (left >= right) return;
+
+        int random_index = left + rand() % (right - left + 1);
+        swap(arr[random_index], arr[right]);
+
+        int pivot = partition(arr, left, right);
+        randomized_quicksort(arr, left, pivot - 1);
+        randomized_quicksort(arr, pivot + 1, right);
+    }
+
+    // 迭代版快速排序
+    template <typename T>
+    static void iterative_quicksort(vector<T>& arr) {
+        if (arr.empty()) return;
+
+        stack<pair<int, int>> st;
+        st.push({0, (int)arr.size() - 1});
+
+        while (!st.empty()) {
+            auto [left, right] = st.top();
+            st.pop();
+
+            if (left >= right) continue;
+
+            int pivot = partition(arr, left, right);
+            st.push({left, pivot - 1});
+            st.push({pivot + 1, right});
+        }
+    }
+
+    // 插入排序（用于混合排序）
+    template <typename T>
+    static void insertion_sort(vector<T>& arr, int left, int right) {
+        for (int i = left + 1; i <= right; i++) {
+            T key = arr[i];
+            int j = i - 1;
+            while (j >= left && arr[j] > key) {
+                arr[j + 1] = arr[j];
+                j--;
+            }
+            arr[j + 1] = key;
+        }
+    }
+
+    // 混合排序（小数组使用插入排序）
+    template <typename T>
+    static void hybrid_quicksort(vector<T>& arr, int left, int right, int threshold = 10) {
+        if (left >= right) return;
+
+        if (right - left + 1 <= threshold) {
+            insertion_sort(arr, left, right);
+            return;
+        }
+
+        int pivot = partition(arr, left, right);
+        hybrid_quicksort(arr, left, pivot - 1, threshold);
+        hybrid_quicksort(arr, pivot + 1, right, threshold);
+    }
+
+    // 堆排序（用于内省排序）
+    template <typename T>
+    static void heapsort(vector<T>& arr, int left, int right) {
+        vector<T> temp(arr.begin() + left, arr.begin() + right + 1);
+        make_heap(temp.begin(), temp.end());
+        sort_heap(temp.begin(), temp.end());
+        copy(temp.begin(), temp.end(), arr.begin() + left);
+    }
+
+    // 内省排序（Introsort）
+    template <typename T>
+    static void introsort_helper(vector<T>& arr, int left, int right, int depth_limit) {
+        if (left >= right) return;
+
+        if (depth_limit == 0) {
+            heapsort(arr, left, right);
+            return;
+        }
+
+        if (right - left + 1 <= 16) {
+            insertion_sort(arr, left, right);
+            return;
+        }
+
+        int pivot = partition(arr, left, right);
+        introsort_helper(arr, left, pivot - 1, depth_limit - 1);
+        introsort_helper(arr, pivot + 1, right, depth_limit - 1);
+    }
+
+    template <typename T>
+    static void introsort(vector<T>& arr) {
+        if (arr.empty()) return;
+        int max_depth = 2 * log2(arr.size());
+        introsort_helper(arr, 0, arr.size() - 1, max_depth);
+    }
+
+    // 尾递归优化
+    template <typename T>
+    static void tail_recursive_quicksort(vector<T>& arr, int left, int right) {
+        while (left < right) {
+            int pivot = partition(arr, left, right);
+
+            if (pivot - left < right - pivot) {
+                tail_recursive_quicksort(arr, left, pivot - 1);
+                left = pivot + 1;
+            } else {
+                tail_recursive_quicksort(arr, pivot + 1, right);
+                right = pivot - 1;
+            }
+        }
+    }
+
+    // 快速选择（第k小元素）
+    template <typename T>
+    static T quickselect(vector<T>& arr, int left, int right, int k) {
+        if (left == right) return arr[left];
+
+        int pivot = partition(arr, left, right);
+
+        if (k == pivot) {
+            return arr[k];
+        } else if (k < pivot) {
+            return quickselect(arr, left, pivot - 1, k);
+        } else {
+            return quickselect(arr, pivot + 1, right, k);
+        }
+    }
+
+    template <typename T>
+    static T kth_element(vector<T> arr, int k) {
+        return quickselect(arr, 0, arr.size() - 1, k - 1);
+    }
+
+    // 中位数的中位数选择pivot
+    template <typename T>
+    static T median_of_medians(vector<T>& arr, int left, int right, int k) {
+        if (right - left < 5) {
+            insertion_sort(arr, left, right);
+            return arr[left + k];
+        }
+
+        vector<T> medians;
+        for (int i = left; i <= right; i += 5) {
+            int group_right = min(i + 4, right);
+            insertion_sort(arr, i, group_right);
+            medians.push_back(arr[i + (group_right - i) / 2]);
+        }
+
+        T pivot = median_of_medians(medians, 0, medians.size() - 1, medians.size() / 2);
+
+        int pivot_index = find(arr.begin() + left, arr.begin() + right + 1, pivot) - arr.begin();
+        swap(arr[pivot_index], arr[right]);
+
+        int partition_index = partition(arr, left, right);
+        int relative_pos = partition_index - left;
+
+        if (k == relative_pos) {
+            return arr[partition_index];
+        } else if (k < relative_pos) {
+            return median_of_medians(arr, left, partition_index - 1, k);
+        } else {
+            return median_of_medians(arr, partition_index + 1, right, k - relative_pos - 1);
+        }
+    }
+};
+]=]),
 
 -- 08_Miscellaneous\Query_Algorithms\MoAlgorithm.h
-s("08_miscellaneous_query_algorithms_moalgorithm_h", {
-	t({
-		"/**",
-		" * 莫队算法",
-		" * 时间复杂度：O((n+q)√n)",
-		" * 空间复杂度：O(n)",
-		" * 适用场景：离线区间查询，支持添加/删除操作",
-		" */",
-		"struct MoAlgorithm {",
-		"    struct Query {",
-		"        int l, r, id, block;",
-		"        bool operator<(const Query& other) const {",
-		"            if (block != other.block) return block < other.block;",
-		"            return (block & 1) ? (r < other.r) : (r > other.r);",
-		"        }",
-		"    };",
-		"",
-		"    vector<Query> queries;",
-		"    vector<int> arr;",
-		"    vector<long long> answers;",
-		"    int n, q, block_size;",
-		"",
-		"    int curr_l, curr_r;",
-		"    long long curr_answer;",
-		"",
-		"    MoAlgorithm(const vector<int>& data) : arr(data), n(data.size()) {",
-		"        block_size = max(1, (int)sqrt(n));",
-		"        curr_l = 0;",
-		"        curr_r = -1;",
-		"        curr_answer = 0;",
-		"    }",
-		"",
-		"    void add_query(int l, int r, int id) {",
-		"        queries.push_back({l, r, id, l / block_size});",
-		"        q = queries.size();",
-		"    }",
-		"",
-		"    virtual void add_element(int pos) = 0;",
-		"    virtual void remove_element(int pos) = 0;",
-		"    virtual long long get_answer() { return curr_answer; }",
-		"",
-		"    vector<long long> solve() {",
-		"        answers.resize(q);",
-		"        sort(queries.begin(), queries.end());",
-		"",
-		"        for (const auto& query : queries) {",
-		"            while (curr_l > query.l) {",
-		"                curr_l--;",
-		"                add_element(curr_l);",
-		"            }",
-		"            while (curr_l < query.l) {",
-		"                remove_element(curr_l);",
-		"                curr_l++;",
-		"            }",
-		"",
-		"            while (curr_r < query.r) {",
-		"                curr_r++;",
-		"                add_element(curr_r);",
-		"            }",
-		"            while (curr_r > query.r) {",
-		"                remove_element(curr_r);",
-		"                curr_r--;",
-		"            }",
-		"",
-		"            answers[query.id] = get_answer();",
-		"        }",
-		"",
-		"        return answers;",
-		"    }",
-		"};",
-		"",
-		"/**",
-		" * 区间不同元素个数查询",
-		" */",
-		"struct DistinctElementsMo : public MoAlgorithm {",
-		"    vector<int> cnt;",
-		"    int distinct_count;",
-		"",
-		"    DistinctElementsMo(const vector<int>& data) : MoAlgorithm(data) {",
-		"        int max_val = *max_element(data.begin(), data.end());",
-		"        cnt.resize(max_val + 1, 0);",
-		"        distinct_count = 0;",
-		"    }",
-		"",
-		"    void add_element(int pos) override {",
-		"        if (cnt[arr[pos]] == 0) distinct_count++;",
-		"        cnt[arr[pos]]++;",
-		"    }",
-		"",
-		"    void remove_element(int pos) override {",
-		"        cnt[arr[pos]]--;",
-		"        if (cnt[arr[pos]] == 0) distinct_count--;",
-		"    }",
-		"",
-		"    long long get_answer() override { return distinct_count; }",
-		"};",
-		"",
-		"/**",
-		" * 区间平方和查询",
-		" */",
-		"struct SquareSumMo : public MoAlgorithm {",
-		"    long long sum, square_sum;",
-		"",
-		"    SquareSumMo(const vector<int>& data) : MoAlgorithm(data) {",
-		"        sum = 0;",
-		"        square_sum = 0;",
-		"    }",
-		"",
-		"    void add_element(int pos) override {",
-		"        square_sum += 2LL * sum * arr[pos] + 1LL * arr[pos] * arr[pos];",
-		"        sum += arr[pos];",
-		"    }",
-		"",
-		"    void remove_element(int pos) override {",
-		"        sum -= arr[pos];",
-		"        square_sum -= 2LL * sum * arr[pos] + 1LL * arr[pos] * arr[pos];",
-		"    }",
-		"",
-		"    long long get_answer() override { return square_sum; }",
-		"};",
-		"",
-		"/**",
-		" * 带修改的莫队算法",
-		" * 时间复杂度：O(n^(5/3))",
-		" * 空间复杂度：O(n)",
-		" */",
-		"struct ModifiableMoAlgorithm {",
-		"    struct Query {",
-		"        int l, r, t, id;",
-		"    };",
-		"",
-		"    struct Modification {",
-		"        int pos, old_val, new_val;",
-		"    };",
-		"",
-		"    vector<Query> queries;",
-		"    vector<Modification> modifications;",
-		"    vector<int> arr, original_arr;",
-		"    vector<long long> answers;",
-		"    int n, q, m, block_size;",
-		"",
-		"    int curr_l, curr_r, curr_t;",
-		"",
-		"    ModifiableMoAlgorithm(const vector<int>& data) : arr(data), original_arr(data), n(data.size()) {",
-		"        block_size = max(1, (int)cbrt(n * n));",
-		"        curr_l = 0;",
-		"        curr_r = -1;",
-		"        curr_t = -1;",
-		"    }",
-		"",
-		"    void add_query(int l, int r, int t, int id) { queries.push_back({l, r, t, id}); }",
-		"",
-		"    void add_modification(int pos, int new_val) {",
-		"        modifications.push_back({pos, arr[pos], new_val});",
-		"        arr[pos] = new_val;",
-		"        m = modifications.size();",
-		"    }",
-		"",
-		"    virtual void add_element(int pos) = 0;",
-		"    virtual void remove_element(int pos) = 0;",
-		"    virtual void apply_modification(int mod_id) = 0;",
-		"    virtual void undo_modification(int mod_id) = 0;",
-		"    virtual long long get_answer() = 0;",
-		"",
-		"    vector<long long> solve() {",
-		"        answers.resize(queries.size());",
-		"        arr = original_arr;",
-		"",
-		"        sort(queries.begin(), queries.end(), [&](const Query& a, const Query& b) {",
-		"            int block_a = a.l / block_size;",
-		"            int block_b = b.l / block_size;",
-		"            if (block_a != block_b) return block_a < block_b;",
-		"",
-		"            int block_r_a = a.r / block_size;",
-		"            int block_r_b = b.r / block_size;",
-		"            if (block_r_a != block_r_b) return block_r_a < block_r_b;",
-		"",
-		"            return a.t < b.t;",
-		"        });",
-		"",
-		"        for (const auto& query : queries) {",
-		"            while (curr_t < query.t) {",
-		"                curr_t++;",
-		"                apply_modification(curr_t);",
-		"            }",
-		"            while (curr_t > query.t) {",
-		"                undo_modification(curr_t);",
-		"                curr_t--;",
-		"            }",
-		"",
-		"            while (curr_l > query.l) {",
-		"                curr_l--;",
-		"                add_element(curr_l);",
-		"            }",
-		"            while (curr_l < query.l) {",
-		"                remove_element(curr_l);",
-		"                curr_l++;",
-		"            }",
-		"            while (curr_r < query.r) {",
-		"                curr_r++;",
-		"                add_element(curr_r);",
-		"            }",
-		"            while (curr_r > query.r) {",
-		"                remove_element(curr_r);",
-		"                curr_r--;",
-		"            }",
-		"",
-		"            answers[query.id] = get_answer();",
-		"        }",
-		"",
-		"        return answers;",
-		"    }",
-		"};",
-	})
-}),
+ps("08_miscellaneous_query_algorithms_moalgorithm_h", [=[
+
+/**
+ * 莫队算法
+ * 时间复杂度：O((n+q)√n)
+ * 空间复杂度：O(n)
+ * 适用场景：离线区间查询，支持添加/删除操作
+ */
+struct MoAlgorithm {
+    struct Query {
+        int l, r, id, block;
+        bool operator<(const Query& other) const {
+            if (block != other.block) return block < other.block;
+            return (block & 1) ? (r < other.r) : (r > other.r);
+        }
+    };
+
+    vector<Query> queries;
+    vector<int> arr;
+    vector<long long> answers;
+    int n, q, block_size;
+
+    int curr_l, curr_r;
+    long long curr_answer;
+
+    MoAlgorithm(const vector<int>& data) : arr(data), n(data.size()) {
+        block_size = max(1, (int)sqrt(n));
+        curr_l = 0;
+        curr_r = -1;
+        curr_answer = 0;
+    }
+
+    void add_query(int l, int r, int id) {
+        queries.push_back({l, r, id, l / block_size});
+        q = queries.size();
+    }
+
+    virtual void add_element(int pos) = 0;
+    virtual void remove_element(int pos) = 0;
+    virtual long long get_answer() { return curr_answer; }
+
+    vector<long long> solve() {
+        answers.resize(q);
+        sort(queries.begin(), queries.end());
+
+        for (const auto& query : queries) {
+            while (curr_l > query.l) {
+                curr_l--;
+                add_element(curr_l);
+            }
+            while (curr_l < query.l) {
+                remove_element(curr_l);
+                curr_l++;
+            }
+
+            while (curr_r < query.r) {
+                curr_r++;
+                add_element(curr_r);
+            }
+            while (curr_r > query.r) {
+                remove_element(curr_r);
+                curr_r--;
+            }
+
+            answers[query.id] = get_answer();
+        }
+
+        return answers;
+    }
+};
+
+/**
+ * 区间不同元素个数查询
+ */
+struct DistinctElementsMo : public MoAlgorithm {
+    vector<int> cnt;
+    int distinct_count;
+
+    DistinctElementsMo(const vector<int>& data) : MoAlgorithm(data) {
+        int max_val = *max_element(data.begin(), data.end());
+        cnt.resize(max_val + 1, 0);
+        distinct_count = 0;
+    }
+
+    void add_element(int pos) override {
+        if (cnt[arr[pos]] == 0) distinct_count++;
+        cnt[arr[pos]]++;
+    }
+
+    void remove_element(int pos) override {
+        cnt[arr[pos]]--;
+        if (cnt[arr[pos]] == 0) distinct_count--;
+    }
+
+    long long get_answer() override { return distinct_count; }
+};
+
+/**
+ * 区间平方和查询
+ */
+struct SquareSumMo : public MoAlgorithm {
+    long long sum, square_sum;
+
+    SquareSumMo(const vector<int>& data) : MoAlgorithm(data) {
+        sum = 0;
+        square_sum = 0;
+    }
+
+    void add_element(int pos) override {
+        square_sum += 2LL * sum * arr[pos] + 1LL * arr[pos] * arr[pos];
+        sum += arr[pos];
+    }
+
+    void remove_element(int pos) override {
+        sum -= arr[pos];
+        square_sum -= 2LL * sum * arr[pos] + 1LL * arr[pos] * arr[pos];
+    }
+
+    long long get_answer() override { return square_sum; }
+};
+
+/**
+ * 带修改的莫队算法
+ * 时间复杂度：O(n^(5/3))
+ * 空间复杂度：O(n)
+ */
+struct ModifiableMoAlgorithm {
+    struct Query {
+        int l, r, t, id;
+    };
+
+    struct Modification {
+        int pos, old_val, new_val;
+    };
+
+    vector<Query> queries;
+    vector<Modification> modifications;
+    vector<int> arr, original_arr;
+    vector<long long> answers;
+    int n, q, m, block_size;
+
+    int curr_l, curr_r, curr_t;
+
+    ModifiableMoAlgorithm(const vector<int>& data) : arr(data), original_arr(data), n(data.size()) {
+        block_size = max(1, (int)cbrt(n * n));
+        curr_l = 0;
+        curr_r = -1;
+        curr_t = -1;
+    }
+
+    void add_query(int l, int r, int t, int id) { queries.push_back({l, r, t, id}); }
+
+    void add_modification(int pos, int new_val) {
+        modifications.push_back({pos, arr[pos], new_val});
+        arr[pos] = new_val;
+        m = modifications.size();
+    }
+
+    virtual void add_element(int pos) = 0;
+    virtual void remove_element(int pos) = 0;
+    virtual void apply_modification(int mod_id) = 0;
+    virtual void undo_modification(int mod_id) = 0;
+    virtual long long get_answer() = 0;
+
+    vector<long long> solve() {
+        answers.resize(queries.size());
+        arr = original_arr;
+
+        sort(queries.begin(), queries.end(), [&](const Query& a, const Query& b) {
+            int block_a = a.l / block_size;
+            int block_b = b.l / block_size;
+            if (block_a != block_b) return block_a < block_b;
+
+            int block_r_a = a.r / block_size;
+            int block_r_b = b.r / block_size;
+            if (block_r_a != block_r_b) return block_r_a < block_r_b;
+
+            return a.t < b.t;
+        });
+
+        for (const auto& query : queries) {
+            while (curr_t < query.t) {
+                curr_t++;
+                apply_modification(curr_t);
+            }
+            while (curr_t > query.t) {
+                undo_modification(curr_t);
+                curr_t--;
+            }
+
+            while (curr_l > query.l) {
+                curr_l--;
+                add_element(curr_l);
+            }
+            while (curr_l < query.l) {
+                remove_element(curr_l);
+                curr_l++;
+            }
+            while (curr_r < query.r) {
+                curr_r++;
+                add_element(curr_r);
+            }
+            while (curr_r > query.r) {
+                remove_element(curr_r);
+                curr_r--;
+            }
+
+            answers[query.id] = get_answer();
+        }
+
+        return answers;
+    }
+};
+]=]),
 
 -- 10_Contest_Specific\CodeForces\template.h
-s("10_contest_specific_codeforces_template_h", {
-	t({
-		"#include <bits/stdc++.h>",
-		"using namespace std;",
-		"",
-		"using ll = long long;",
-		"using ull = unsigned long long;",
-		"using pii = pair<int, int>;",
-		"using pll = pair<ll, ll>;",
-		"using vi = vector<int>;",
-		"using vll = vector<ll>;",
-		"using vvi = vector<vi>;",
-		"using vvl = vector<vll>;",
-		"",
-		"constexpr int MOD = 1e9 + 7;",
-		"constexpr int INF = 0x3f3f3f3f;",
-		"constexpr ll LINF = 0x3f3f3f3f3f3f3f3f;",
-		"",
-		"#ifndef ONLINE_JUDGE",
-		"#define dbg(x) cerr << #x << \" = \" << x << '\\n'",
-		"#define dbg2(x, y) cerr << #x << \" = \" << x << \", \" << #y << \" = \" << y << '\\n'",
-		"#define dbgv(v)                        \\",
-		"    cerr << #v << \": \";                \\",
-		"    for (auto x : v) cerr << x << ' '; \\",
-		"    cerr << '\\n'",
-		"#else",
-		"#define dbg(x)",
-		"#define dbg2(x, y)",
-		"#define dbgv(v)",
-		"#endif",
-		"",
-		"void solve() {",
-		"    ",
-		"}",
-		"",
-		"int main() {",
-		"    ios::sync_with_stdio(false);",
-		"    cin.tie(nullptr);",
-		"    ",
-		"    int t = 1;",
-		"    // cin >> t;",
-		"    while (t--) solve();",
-		"    ",
-		"    return 0;",
-		"}",
-	})
-}),
+ps("10_contest_specific_codeforces_template_h", [=[
+#include <bits/stdc++.h>
+using namespace std;
+
+void solve() {
+    
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    int T = 1;
+    // cin >> T;
+    while (T--) solve();
+    return 0;
+}
+]=]),
 
 -- 12_Utilities\BigInteger.h
-s("12_utilities_biginteger_h", {
-	t({
-		"/**",
-		" * 大整数类",
-		" * 加减法复杂度：O(max(n,m))；乘法：O(n*m)；除法：O(n*m)",
-		" * 空间复杂度：O(n)",
-		" * 支持任意精度整数运算，包含高精度与低精度优化运算",
-		" */",
-		"struct BigInt {",
-		"    vector<int> digits;",
-		"    bool negative = false;",
-		"    static constexpr int BASE = 10000;",
-		"    static constexpr int WIDTH = 4;",
-		"",
-		"    void normalize() {",
-		"        while (digits.size() > 1 && digits.back() == 0) digits.pop_back();",
-		"        if (digits.size() == 1 && digits[0] == 0) negative = false;",
-		"    }",
-		"",
-		"    int compare_abs(const BigInt& other) const {",
-		"        if (digits.size() != other.digits.size()) {",
-		"            return digits.size() < other.digits.size() ? -1 : 1;",
-		"        }",
-		"        for (int i = digits.size() - 1; i >= 0; i--) {",
-		"            if (digits[i] != other.digits[i]) {",
-		"                return digits[i] < other.digits[i] ? -1 : 1;",
-		"            }",
-		"        }",
-		"        return 0;",
-		"    }",
-		"",
-		"    BigInt() : digits{0} {",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    BigInt(T x)",
-		"        requires integral<T>",
-		"    {",
-		"        negative = x < 0;",
-		"        x = std::abs(x);",
-		"        digits.clear();",
-		"        if (x == 0) {",
-		"            digits.push_back(0);",
-		"        } else {",
-		"            while (x) {",
-		"                digits.push_back(x % BASE);",
-		"                x /= BASE;",
-		"            }",
-		"        }",
-		"    }",
-		"",
-		"    BigInt(const string& s) {",
-		"        digits.clear();",
-		"        negative = false;",
-		"",
-		"        if (s.empty()) {",
-		"            digits.push_back(0);",
-		"            return;",
-		"        }",
-		"",
-		"        int start = 0;",
-		"        if (s[0] == '-') {",
-		"            negative = true;",
-		"            start = 1;",
-		"        } else if (s[0] == '+') {",
-		"            start = 1;",
-		"        }",
-		"",
-		"        for (int i = s.length(); i > start; i -= WIDTH) {",
-		"            int num = 0;",
-		"            for (int j = max(start, i - WIDTH); j < i; j++) {",
-		"                num = num * 10 + (s[j] - '0');",
-		"            }",
-		"            digits.push_back(num);",
-		"        }",
-		"        normalize();",
-		"    }",
-		"",
-		"    auto operator<=>(const BigInt& other) const {",
-		"        if (negative != other.negative) {",
-		"            return negative ? strong_ordering::less : strong_ordering::greater;",
-		"        }",
-		"",
-		"        int cmp = compare_abs(other);",
-		"        if (negative) cmp = -cmp;",
-		"",
-		"        return cmp < 0 ? strong_ordering::less : cmp > 0 ? strong_ordering::greater : strong_ordering::equal;",
-		"    }",
-		"",
-		"    bool operator==(const BigInt& other) const = default;",
-		"",
-		"    // =================== 高精度 + 高精度 ===================",
-		"    BigInt operator+(const BigInt& other) const {",
-		"        if (negative != other.negative) {",
-		"            return negative ? other - (-*this) : *this - (-other);",
-		"        }",
-		"",
-		"        BigInt result;",
-		"        result.negative = negative;",
-		"        result.digits.clear();",
-		"",
-		"        int carry = 0;",
-		"        size_t max_size = max(digits.size(), other.digits.size());",
-		"",
-		"        for (size_t i = 0; i < max_size || carry; i++) {",
-		"            int sum = carry;",
-		"            if (i < digits.size()) sum += digits[i];",
-		"            if (i < other.digits.size()) sum += other.digits[i];",
-		"",
-		"            result.digits.push_back(sum % BASE);",
-		"            carry = sum / BASE;",
-		"        }",
-		"",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    BigInt operator-(const BigInt& other) const {",
-		"        if (negative != other.negative) {",
-		"            return *this + (-other);",
-		"        }",
-		"",
-		"        if (negative) {",
-		"            return -((-*this) - (-other));",
-		"        }",
-		"",
-		"        if (compare_abs(other) < 0) {",
-		"            return -(other - *this);",
-		"        }",
-		"",
-		"        BigInt result;",
-		"        result.digits.clear();",
-		"",
-		"        int borrow = 0;",
-		"        for (size_t i = 0; i < digits.size(); i++) {",
-		"            int diff = digits[i] - borrow;",
-		"            if (i < other.digits.size()) diff -= other.digits[i];",
-		"",
-		"            if (diff < 0) {",
-		"                diff += BASE;",
-		"                borrow = 1;",
-		"            } else {",
-		"                borrow = 0;",
-		"            }",
-		"",
-		"            result.digits.push_back(diff);",
-		"        }",
-		"",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    BigInt operator*(const BigInt& other) const {",
-		"        BigInt result;",
-		"        result.negative = negative ^ other.negative;",
-		"        result.digits.assign(digits.size() + other.digits.size(), 0);",
-		"",
-		"        for (size_t i = 0; i < digits.size(); i++) {",
-		"            for (size_t j = 0; j < other.digits.size(); j++) {",
-		"                long long prod = 1LL * digits[i] * other.digits[j];",
-		"                result.digits[i + j] += prod;",
-		"",
-		"                if (result.digits[i + j] >= BASE) {",
-		"                    result.digits[i + j + 1] += result.digits[i + j] / BASE;",
-		"                    result.digits[i + j] %= BASE;",
-		"                }",
-		"            }",
-		"        }",
-		"",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    BigInt operator/(const BigInt& other) const {",
-		"        if (other.is_zero()) throw invalid_argument(\"Division by zero\");",
-		"",
-		"        if (compare_abs(other) < 0) {",
-		"            return BigInt(0);",
-		"        }",
-		"",
-		"        BigInt result;",
-		"        result.negative = negative ^ other.negative;",
-		"        result.digits.clear();",
-		"",
-		"        BigInt dividend;",
-		"        BigInt divisor = other.abs();",
-		"",
-		"        for (int i = digits.size() - 1; i >= 0; i--) {",
-		"            dividend = dividend * BASE + digits[i];",
-		"",
-		"            int quotient = 0;",
-		"            if (dividend.compare_abs(divisor) >= 0) {",
-		"                int left = 0, right = BASE - 1;",
-		"                while (left <= right) {",
-		"                    int mid = (left + right) / 2;",
-		"                    BigInt temp = divisor * mid;",
-		"                    if (temp.compare_abs(dividend) <= 0) {",
-		"                        quotient = mid;",
-		"                        left = mid + 1;",
-		"                    } else {",
-		"                        right = mid - 1;",
-		"                    }",
-		"                }",
-		"                dividend = dividend - divisor * quotient;",
-		"            }",
-		"",
-		"            result.digits.push_back(quotient);",
-		"        }",
-		"",
-		"        reverse(result.digits.begin(), result.digits.end());",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    BigInt operator%(const BigInt& other) const {",
-		"        if (other.is_zero()) throw invalid_argument(\"Modulo by zero\");",
-		"",
-		"        BigInt quotient = *this / other;",
-		"        BigInt remainder = *this - quotient * other;",
-		"",
-		"        if (remainder.negative && !other.negative) {",
-		"            remainder = remainder + other;",
-		"        } else if (!remainder.negative && other.negative) {",
-		"            remainder = remainder + other;",
-		"        }",
-		"",
-		"        return remainder;",
-		"    }",
-		"",
-		"    // =================== 高精度 + 低精度（优化版本）===================",
-		"",
-		"    template <typename T>",
-		"    BigInt operator+(T x) const",
-		"        requires integral<T>",
-		"    {",
-		"        if (x == 0) return *this;",
-		"",
-		"        bool x_negative = x < 0;",
-		"        x = std::abs(x);",
-		"",
-		"        if (negative != x_negative) {",
-		"            return negative ? BigInt(x) - (-*this) : *this - BigInt(x);",
-		"        }",
-		"",
-		"        BigInt result = *this;",
-		"        int carry = x;",
-		"",
-		"        for (size_t i = 0; i < result.digits.size() && carry; i++) {",
-		"            result.digits[i] += carry;",
-		"            carry = result.digits[i] / BASE;",
-		"            result.digits[i] %= BASE;",
-		"        }",
-		"",
-		"        while (carry) {",
-		"            result.digits.push_back(carry % BASE);",
-		"            carry /= BASE;",
-		"        }",
-		"",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    BigInt operator-(T x) const",
-		"        requires integral<T>",
-		"    {",
-		"        return *this + (-x);",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    BigInt operator*(T x) const",
-		"        requires integral<T>",
-		"    {",
-		"        if (x == 0) return BigInt(0);",
-		"",
-		"        BigInt result;",
-		"        result.negative = negative ^ (x < 0);",
-		"        result.digits.clear();",
-		"",
-		"        x = std::abs(x);",
-		"        long long carry = 0;",
-		"",
-		"        for (int digit : digits) {",
-		"            carry += 1LL * digit * x;",
-		"            result.digits.push_back(carry % BASE);",
-		"            carry /= BASE;",
-		"        }",
-		"",
-		"        while (carry) {",
-		"            result.digits.push_back(carry % BASE);",
-		"            carry /= BASE;",
-		"        }",
-		"",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    BigInt operator/(T x) const",
-		"        requires integral<T>",
-		"    {",
-		"        if (x == 0) throw invalid_argument(\"Division by zero\");",
-		"",
-		"        BigInt result;",
-		"        result.negative = negative ^ (x < 0);",
-		"        result.digits.clear();",
-		"",
-		"        x = std::abs(x);",
-		"        long long remainder = 0;",
-		"",
-		"        for (int i = digits.size() - 1; i >= 0; i--) {",
-		"            remainder = remainder * BASE + digits[i];",
-		"            result.digits.push_back(remainder / x);",
-		"            remainder %= x;",
-		"        }",
-		"",
-		"        reverse(result.digits.begin(), result.digits.end());",
-		"        result.normalize();",
-		"        return result;",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    T operator%(T x) const",
-		"        requires integral<T>",
-		"    {",
-		"        if (x == 0) throw invalid_argument(\"Modulo by zero\");",
-		"",
-		"        x = std::abs(x);",
-		"        long long remainder = 0;",
-		"",
-		"        for (int i = digits.size() - 1; i >= 0; i--) {",
-		"            remainder = (remainder * BASE + digits[i]) % x;",
-		"        }",
-		"",
-		"        return negative ? -remainder : remainder;",
-		"    }",
-		"",
-		"    // =================== 支持交换律 ===================",
-		"    template <typename T>",
-		"    friend BigInt operator+(T x, const BigInt& big)",
-		"        requires integral<T>",
-		"    {",
-		"        return big + x;",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    friend BigInt operator*(T x, const BigInt& big)",
-		"        requires integral<T>",
-		"    {",
-		"        return big * x;",
-		"    }",
-		"",
-		"    // =================== 复合赋值运算符 ===================",
-		"    BigInt& operator+=(const BigInt& other) {",
-		"        return *this = *this + other;",
-		"    }",
-		"    BigInt& operator-=(const BigInt& other) {",
-		"        return *this = *this - other;",
-		"    }",
-		"    BigInt& operator*=(const BigInt& other) {",
-		"        return *this = *this * other;",
-		"    }",
-		"    BigInt& operator/=(const BigInt& other) {",
-		"        return *this = *this / other;",
-		"    }",
-		"    BigInt& operator%=(const BigInt& other) {",
-		"        return *this = *this % other;",
-		"    }",
-		"",
-		"    template <typename T>",
-		"    BigInt& operator+=(T x)",
-		"        requires integral<T>",
-		"    {",
-		"        return *this = *this + x;",
-		"    }",
-		"    template <typename T>",
-		"    BigInt& operator-=(T x)",
-		"        requires integral<T>",
-		"    {",
-		"        return *this = *this - x;",
-		"    }",
-		"    template <typename T>",
-		"    BigInt& operator*=(T x)",
-		"        requires integral<T>",
-		"    {",
-		"        return *this = *this * x;",
-		"    }",
-		"    template <typename T>",
-		"    BigInt& operator/=(T x)",
-		"        requires integral<T>",
-		"    {",
-		"        return *this = *this / x;",
-		"    }",
-		"",
-		"    // =================== 工具函数 ===================",
-		"    BigInt operator-() const {",
-		"        BigInt result = *this;",
-		"        if (!result.is_zero()) result.negative = !result.negative;",
-		"        return result;",
-		"    }",
-		"",
-		"    BigInt abs() const {",
-		"        BigInt result = *this;",
-		"        result.negative = false;",
-		"        return result;",
-		"    }",
-		"",
-		"    bool is_zero() const {",
-		"        return digits.size() == 1 && digits[0] == 0;",
-		"    }",
-		"    bool is_even() const {",
-		"        return (digits[0] % 2) == 0;",
-		"    }",
-		"    bool is_odd() const {",
-		"        return (digits[0] % 2) == 1;",
-		"    }",
-		"",
-		"    // 快速幂",
-		"    template <typename T>",
-		"    BigInt power(T exp) const",
-		"        requires integral<T>",
-		"    {",
-		"        if (exp == 0) return BigInt(1);",
-		"        if (exp == 1) return *this;",
-		"        if (exp < 0) throw invalid_argument(\"Negative exponent\");",
-		"",
-		"        BigInt result = power(exp / 2);",
-		"        result *= result;",
-		"        if (exp & 1) result *= *this;",
-		"        return result;",
-		"    }",
-		"",
-		"    // 最大公约数",
-		"    BigInt gcd(const BigInt& other) const {",
-		"        if (other.is_zero()) return this->abs();",
-		"        return other.gcd(*this % other);",
-		"    }",
-		"",
-		"    // 快速模幂：(this^exp) % mod",
-		"    template <typename T>",
-		"    BigInt power_mod(T exp, const BigInt& mod) const",
-		"        requires integral<T>",
-		"    {",
-		"        if (mod == BigInt(1)) return BigInt(0);",
-		"",
-		"        BigInt result(1);",
-		"        BigInt base = *this % mod;",
-		"",
-		"        while (exp > 0) {",
-		"            if (exp & 1) {",
-		"                result = (result * base) % mod;",
-		"            }",
-		"            base = (base * base) % mod;",
-		"            exp >>= 1;",
-		"        }",
-		"",
-		"        return result;",
-		"    }",
-		"",
-		"    // =================== 输入输出 ===================",
-		"    string to_string() const {",
-		"        if (digits.empty()) return \"0\";",
-		"",
-		"        string result;",
-		"        if (negative) result += \"-\";",
-		"",
-		"        result += std::to_string(digits.back());",
-		"        for (int i = digits.size() - 2; i >= 0; i--) {",
-		"            string part = std::to_string(digits[i]);",
-		"            result += string(WIDTH - part.length(), '0') + part;",
-		"        }",
-		"",
-		"        return result;",
-		"    }",
-		"",
-		"    friend ostream& operator<<(ostream& os, const BigInt& num) {",
-		"        return os << num.to_string();",
-		"    }",
-		"",
-		"    friend istream& operator>>(istream& is, BigInt& num) {",
-		"        string s;",
-		"        is >> s;",
-		"        num = BigInt(s);",
-		"        return is;",
-		"    }",
-		"",
-		"    // =================== 静态工具函数 ===================",
-		"",
-		"    // 阶乘",
-		"    static BigInt factorial(int n) {",
-		"        BigInt result(1);",
-		"        for (int i = 2; i <= n; i++) {",
-		"            result *= i;",
-		"        }",
-		"        return result;",
-		"    }",
-		"",
-		"    // 组合数C(n,k) - 优化版本",
-		"    static BigInt combination(int n, int k) {",
-		"        if (k > n || k < 0) return BigInt(0);",
-		"        if (k == 0 || k == n) return BigInt(1);",
-		"",
-		"        k = min(k, n - k);  // 优化：选择较小的k",
-		"        BigInt numerator(1), denominator(1);",
-		"        for (int i = 0; i < k; i++) {",
-		"            numerator *= (n - i);    // 高精×低精",
-		"            denominator *= (i + 1);  // 高精×低精",
-		"        }",
-		"        return numerator / denominator;  // 高精÷高精",
-		"    }",
-		"",
-		"    // 整数平方根",
-		"    BigInt sqrt() const {",
-		"        if (negative) throw invalid_argument(\"Square root of negative number\");",
-		"        if (is_zero()) return BigInt(0);",
-		"",
-		"        BigInt left(1), right = *this;",
-		"        BigInt result(1);",
-		"",
-		"        while (left <= right) {",
-		"            BigInt mid = (left + right) / BigInt(2);",
-		"            BigInt square = mid * mid;",
-		"",
-		"            if (square <= *this) {",
-		"                result = mid;",
-		"                left = mid + BigInt(1);",
-		"            } else {",
-		"                right = mid - BigInt(1);",
-		"            }",
-		"        }",
-		"",
-		"        return result;",
-		"    }",
-		"",
-		"    // 静态开方函数（支持外部调用）",
-		"    static BigInt sqrt_bigint(const BigInt& n) {",
-		"        return n.sqrt();",
-		"    }",
-		"",
-		"    // =================== 实用应用函数 ===================",
-		"",
-		"    // 大数阶乘除法",
-		"    static BigInt factorial_div(int n, int k) {",
-		"        BigInt result(1);",
-		"        for (int i = 1; i <= n; i++) {",
-		"            result *= i;",
-		"        }",
-		"        return result / k;  // 高精÷低精，O(n)",
-		"    }",
-		"",
-		"    // Catalan数：C_n = C(2n,n)/(n+1)",
-		"    static BigInt catalan(int n) {",
-		"        return combination(2 * n, n) / (n + 1);",
-		"    }",
-		"",
-		"    // 斐波那契数列第n项",
-		"    static BigInt fibonacci(int n) {",
-		"        if (n <= 1) return BigInt(n);",
-		"",
-		"        BigInt a(0), b(1);",
-		"        for (int i = 2; i <= n; i++) {",
-		"            BigInt temp = a + b;",
-		"            a = b;",
-		"            b = temp;",
-		"        }",
-		"        return b;",
-		"    }",
-		"};",
-	})
-}),
+ps("12_utilities_biginteger_h", [=[
+
+/**
+ * 大整数类
+ * 加减法复杂度：O(max(n,m))；乘法：O(n*m)；除法：O(n*m)
+ * 空间复杂度：O(n)
+ * 支持任意精度整数运算，包含高精度与低精度优化运算
+ */
+struct BigInt {
+    vector<int> digits;
+    bool negative = false;
+    static constexpr int BASE = 10000;
+    static constexpr int WIDTH = 4;
+
+    void normalize() {
+        while (digits.size() > 1 && digits.back() == 0) digits.pop_back();
+        if (digits.size() == 1 && digits[0] == 0) negative = false;
+    }
+
+    int compare_abs(const BigInt& other) const {
+        if (digits.size() != other.digits.size()) {
+            return digits.size() < other.digits.size() ? -1 : 1;
+        }
+        for (int i = digits.size() - 1; i >= 0; i--) {
+            if (digits[i] != other.digits[i]) {
+                return digits[i] < other.digits[i] ? -1 : 1;
+            }
+        }
+        return 0;
+    }
+
+    BigInt() : digits{0} {
+    }
+
+    template <typename T>
+    BigInt(T x)
+        requires integral<T>
+    {
+        negative = x < 0;
+        x = std::abs(x);
+        digits.clear();
+        if (x == 0) {
+            digits.push_back(0);
+        } else {
+            while (x) {
+                digits.push_back(x % BASE);
+                x /= BASE;
+            }
+        }
+    }
+
+    BigInt(const string& s) {
+        digits.clear();
+        negative = false;
+
+        if (s.empty()) {
+            digits.push_back(0);
+            return;
+        }
+
+        int start = 0;
+        if (s[0] == '-') {
+            negative = true;
+            start = 1;
+        } else if (s[0] == '+') {
+            start = 1;
+        }
+
+        for (int i = s.length(); i > start; i -= WIDTH) {
+            int num = 0;
+            for (int j = max(start, i - WIDTH); j < i; j++) {
+                num = num * 10 + (s[j] - '0');
+            }
+            digits.push_back(num);
+        }
+        normalize();
+    }
+
+    auto operator<=>(const BigInt& other) const {
+        if (negative != other.negative) {
+            return negative ? strong_ordering::less : strong_ordering::greater;
+        }
+
+        int cmp = compare_abs(other);
+        if (negative) cmp = -cmp;
+
+        return cmp < 0 ? strong_ordering::less : cmp > 0 ? strong_ordering::greater : strong_ordering::equal;
+    }
+
+    bool operator==(const BigInt& other) const = default;
+
+    // =================== 高精度 + 高精度 ===================
+    BigInt operator+(const BigInt& other) const {
+        if (negative != other.negative) {
+            return negative ? other - (-*this) : *this - (-other);
+        }
+
+        BigInt result;
+        result.negative = negative;
+        result.digits.clear();
+
+        int carry = 0;
+        size_t max_size = max(digits.size(), other.digits.size());
+
+        for (size_t i = 0; i < max_size || carry; i++) {
+            int sum = carry;
+            if (i < digits.size()) sum += digits[i];
+            if (i < other.digits.size()) sum += other.digits[i];
+
+            result.digits.push_back(sum % BASE);
+            carry = sum / BASE;
+        }
+
+        result.normalize();
+        return result;
+    }
+
+    BigInt operator-(const BigInt& other) const {
+        if (negative != other.negative) {
+            return *this + (-other);
+        }
+
+        if (negative) {
+            return -((-*this) - (-other));
+        }
+
+        if (compare_abs(other) < 0) {
+            return -(other - *this);
+        }
+
+        BigInt result;
+        result.digits.clear();
+
+        int borrow = 0;
+        for (size_t i = 0; i < digits.size(); i++) {
+            int diff = digits[i] - borrow;
+            if (i < other.digits.size()) diff -= other.digits[i];
+
+            if (diff < 0) {
+                diff += BASE;
+                borrow = 1;
+            } else {
+                borrow = 0;
+            }
+
+            result.digits.push_back(diff);
+        }
+
+        result.normalize();
+        return result;
+    }
+
+    BigInt operator*(const BigInt& other) const {
+        BigInt result;
+        result.negative = negative ^ other.negative;
+        result.digits.assign(digits.size() + other.digits.size(), 0);
+
+        for (size_t i = 0; i < digits.size(); i++) {
+            for (size_t j = 0; j < other.digits.size(); j++) {
+                long long prod = 1LL * digits[i] * other.digits[j];
+                result.digits[i + j] += prod;
+
+                if (result.digits[i + j] >= BASE) {
+                    result.digits[i + j + 1] += result.digits[i + j] / BASE;
+                    result.digits[i + j] %= BASE;
+                }
+            }
+        }
+
+        result.normalize();
+        return result;
+    }
+
+    BigInt operator/(const BigInt& other) const {
+        if (other.is_zero()) throw invalid_argument("Division by zero");
+
+        if (compare_abs(other) < 0) {
+            return BigInt(0);
+        }
+
+        BigInt result;
+        result.negative = negative ^ other.negative;
+        result.digits.clear();
+
+        BigInt dividend;
+        BigInt divisor = other.abs();
+
+        for (int i = digits.size() - 1; i >= 0; i--) {
+            dividend = dividend * BASE + digits[i];
+
+            int quotient = 0;
+            if (dividend.compare_abs(divisor) >= 0) {
+                int left = 0, right = BASE - 1;
+                while (left <= right) {
+                    int mid = (left + right) / 2;
+                    BigInt temp = divisor * mid;
+                    if (temp.compare_abs(dividend) <= 0) {
+                        quotient = mid;
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                dividend = dividend - divisor * quotient;
+            }
+
+            result.digits.push_back(quotient);
+        }
+
+        reverse(result.digits.begin(), result.digits.end());
+        result.normalize();
+        return result;
+    }
+
+    BigInt operator%(const BigInt& other) const {
+        if (other.is_zero()) throw invalid_argument("Modulo by zero");
+
+        BigInt quotient = *this / other;
+        BigInt remainder = *this - quotient * other;
+
+        if (remainder.negative && !other.negative) {
+            remainder = remainder + other;
+        } else if (!remainder.negative && other.negative) {
+            remainder = remainder + other;
+        }
+
+        return remainder;
+    }
+
+    // =================== 高精度 + 低精度（优化版本）===================
+
+    template <typename T>
+    BigInt operator+(T x) const
+        requires integral<T>
+    {
+        if (x == 0) return *this;
+
+        bool x_negative = x < 0;
+        x = std::abs(x);
+
+        if (negative != x_negative) {
+            return negative ? BigInt(x) - (-*this) : *this - BigInt(x);
+        }
+
+        BigInt result = *this;
+        int carry = x;
+
+        for (size_t i = 0; i < result.digits.size() && carry; i++) {
+            result.digits[i] += carry;
+            carry = result.digits[i] / BASE;
+            result.digits[i] %= BASE;
+        }
+
+        while (carry) {
+            result.digits.push_back(carry % BASE);
+            carry /= BASE;
+        }
+
+        result.normalize();
+        return result;
+    }
+
+    template <typename T>
+    BigInt operator-(T x) const
+        requires integral<T>
+    {
+        return *this + (-x);
+    }
+
+    template <typename T>
+    BigInt operator*(T x) const
+        requires integral<T>
+    {
+        if (x == 0) return BigInt(0);
+
+        BigInt result;
+        result.negative = negative ^ (x < 0);
+        result.digits.clear();
+
+        x = std::abs(x);
+        long long carry = 0;
+
+        for (int digit : digits) {
+            carry += 1LL * digit * x;
+            result.digits.push_back(carry % BASE);
+            carry /= BASE;
+        }
+
+        while (carry) {
+            result.digits.push_back(carry % BASE);
+            carry /= BASE;
+        }
+
+        result.normalize();
+        return result;
+    }
+
+    template <typename T>
+    BigInt operator/(T x) const
+        requires integral<T>
+    {
+        if (x == 0) throw invalid_argument("Division by zero");
+
+        BigInt result;
+        result.negative = negative ^ (x < 0);
+        result.digits.clear();
+
+        x = std::abs(x);
+        long long remainder = 0;
+
+        for (int i = digits.size() - 1; i >= 0; i--) {
+            remainder = remainder * BASE + digits[i];
+            result.digits.push_back(remainder / x);
+            remainder %= x;
+        }
+
+        reverse(result.digits.begin(), result.digits.end());
+        result.normalize();
+        return result;
+    }
+
+    template <typename T>
+    T operator%(T x) const
+        requires integral<T>
+    {
+        if (x == 0) throw invalid_argument("Modulo by zero");
+
+        x = std::abs(x);
+        long long remainder = 0;
+
+        for (int i = digits.size() - 1; i >= 0; i--) {
+            remainder = (remainder * BASE + digits[i]) % x;
+        }
+
+        return negative ? -remainder : remainder;
+    }
+
+    // =================== 支持交换律 ===================
+    template <typename T>
+    friend BigInt operator+(T x, const BigInt& big)
+        requires integral<T>
+    {
+        return big + x;
+    }
+
+    template <typename T>
+    friend BigInt operator*(T x, const BigInt& big)
+        requires integral<T>
+    {
+        return big * x;
+    }
+
+    // =================== 复合赋值运算符 ===================
+    BigInt& operator+=(const BigInt& other) {
+        return *this = *this + other;
+    }
+    BigInt& operator-=(const BigInt& other) {
+        return *this = *this - other;
+    }
+    BigInt& operator*=(const BigInt& other) {
+        return *this = *this * other;
+    }
+    BigInt& operator/=(const BigInt& other) {
+        return *this = *this / other;
+    }
+    BigInt& operator%=(const BigInt& other) {
+        return *this = *this % other;
+    }
+
+    template <typename T>
+    BigInt& operator+=(T x)
+        requires integral<T>
+    {
+        return *this = *this + x;
+    }
+    template <typename T>
+    BigInt& operator-=(T x)
+        requires integral<T>
+    {
+        return *this = *this - x;
+    }
+    template <typename T>
+    BigInt& operator*=(T x)
+        requires integral<T>
+    {
+        return *this = *this * x;
+    }
+    template <typename T>
+    BigInt& operator/=(T x)
+        requires integral<T>
+    {
+        return *this = *this / x;
+    }
+
+    // =================== 工具函数 ===================
+    BigInt operator-() const {
+        BigInt result = *this;
+        if (!result.is_zero()) result.negative = !result.negative;
+        return result;
+    }
+
+    BigInt abs() const {
+        BigInt result = *this;
+        result.negative = false;
+        return result;
+    }
+
+    bool is_zero() const {
+        return digits.size() == 1 && digits[0] == 0;
+    }
+    bool is_even() const {
+        return (digits[0] % 2) == 0;
+    }
+    bool is_odd() const {
+        return (digits[0] % 2) == 1;
+    }
+
+    // 快速幂
+    template <typename T>
+    BigInt power(T exp) const
+        requires integral<T>
+    {
+        if (exp == 0) return BigInt(1);
+        if (exp == 1) return *this;
+        if (exp < 0) throw invalid_argument("Negative exponent");
+
+        BigInt result = power(exp / 2);
+        result *= result;
+        if (exp & 1) result *= *this;
+        return result;
+    }
+
+    // 最大公约数
+    BigInt gcd(const BigInt& other) const {
+        if (other.is_zero()) return this->abs();
+        return other.gcd(*this % other);
+    }
+
+    // 快速模幂：(this^exp) % mod
+    template <typename T>
+    BigInt power_mod(T exp, const BigInt& mod) const
+        requires integral<T>
+    {
+        if (mod == BigInt(1)) return BigInt(0);
+
+        BigInt result(1);
+        BigInt base = *this % mod;
+
+        while (exp > 0) {
+            if (exp & 1) {
+                result = (result * base) % mod;
+            }
+            base = (base * base) % mod;
+            exp >>= 1;
+        }
+
+        return result;
+    }
+
+    // =================== 输入输出 ===================
+    string to_string() const {
+        if (digits.empty()) return "0";
+
+        string result;
+        if (negative) result += "-";
+
+        result += std::to_string(digits.back());
+        for (int i = digits.size() - 2; i >= 0; i--) {
+            string part = std::to_string(digits[i]);
+            result += string(WIDTH - part.length(), '0') + part;
+        }
+
+        return result;
+    }
+
+    friend ostream& operator<<(ostream& os, const BigInt& num) {
+        return os << num.to_string();
+    }
+
+    friend istream& operator>>(istream& is, BigInt& num) {
+        string s;
+        is >> s;
+        num = BigInt(s);
+        return is;
+    }
+
+    // =================== 静态工具函数 ===================
+
+    // 阶乘
+    static BigInt factorial(int n) {
+        BigInt result(1);
+        for (int i = 2; i <= n; i++) {
+            result *= i;
+        }
+        return result;
+    }
+
+    // 组合数C(n,k) - 优化版本
+    static BigInt combination(int n, int k) {
+        if (k > n || k < 0) return BigInt(0);
+        if (k == 0 || k == n) return BigInt(1);
+
+        k = min(k, n - k);  // 优化：选择较小的k
+        BigInt numerator(1), denominator(1);
+        for (int i = 0; i < k; i++) {
+            numerator *= (n - i);    // 高精×低精
+            denominator *= (i + 1);  // 高精×低精
+        }
+        return numerator / denominator;  // 高精÷高精
+    }
+
+    // 整数平方根
+    BigInt sqrt() const {
+        if (negative) throw invalid_argument("Square root of negative number");
+        if (is_zero()) return BigInt(0);
+
+        BigInt left(1), right = *this;
+        BigInt result(1);
+
+        while (left <= right) {
+            BigInt mid = (left + right) / BigInt(2);
+            BigInt square = mid * mid;
+
+            if (square <= *this) {
+                result = mid;
+                left = mid + BigInt(1);
+            } else {
+                right = mid - BigInt(1);
+            }
+        }
+
+        return result;
+    }
+
+    // 静态开方函数（支持外部调用）
+    static BigInt sqrt_bigint(const BigInt& n) {
+        return n.sqrt();
+    }
+
+    // =================== 实用应用函数 ===================
+
+    // 大数阶乘除法
+    static BigInt factorial_div(int n, int k) {
+        BigInt result(1);
+        for (int i = 1; i <= n; i++) {
+            result *= i;
+        }
+        return result / k;  // 高精÷低精，O(n)
+    }
+
+    // Catalan数：C_n = C(2n,n)/(n+1)
+    static BigInt catalan(int n) {
+        return combination(2 * n, n) / (n + 1);
+    }
+
+    // 斐波那契数列第n项
+    static BigInt fibonacci(int n) {
+        if (n <= 1) return BigInt(n);
+
+        BigInt a(0), b(1);
+        for (int i = 2; i <= n; i++) {
+            BigInt temp = a + b;
+            a = b;
+            b = temp;
+        }
+        return b;
+    }
+};
+]=]),
 
 -- 12_Utilities\Fraction.h
-s("12_utilities_fraction_h", {
-	t({
-		"/**",
-		" * 分数类",
-		" * 时间复杂度：四则运算O(log(min(a,b)))，化简O(log(min(a,b)))",
-		" * 空间复杂度：O(1)",
-		" * 适用场景：精确分数运算、有理数计算",
-		" */",
-		"struct Fraction {",
-		"    long long num, den;  // 分子，分母",
-		"",
-		"    Fraction() : num(0), den(1) {}",
-		"    Fraction(long long n) : num(n), den(1) {}",
-		"    Fraction(long long n, long long d) : num(n), den(d) {",
-		"        if (den < 0) {",
-		"            num = -num;",
-		"            den = -den;",
-		"        }",
-		"        reduce();",
-		"    }",
-		"",
-		"    // 约分",
-		"    void reduce() {",
-		"        if (den == 0) { throw invalid_argument(\"Denominator cannot be zero\"); }",
-		"        long long g = gcd(std::abs(num), std::abs(den));",
-		"        num /= g;",
-		"        den /= g;",
-		"    }",
-		"",
-		"    // 运算符重载",
-		"    Fraction operator+(const Fraction& other) const {",
-		"        return Fraction(num * other.den + other.num * den, den * other.den);",
-		"    }",
-		"",
-		"    Fraction operator-(const Fraction& other) const {",
-		"        return Fraction(num * other.den - other.num * den, den * other.den);",
-		"    }",
-		"",
-		"    Fraction operator*(const Fraction& other) const { return Fraction(num * other.num, den * other.den); }",
-		"",
-		"    Fraction operator/(const Fraction& other) const {",
-		"        if (other.num == 0) { throw invalid_argument(\"Division by zero\"); }",
-		"        return Fraction(num * other.den, den * other.num);",
-		"    }",
-		"",
-		"    Fraction operator-() const { return Fraction(-num, den); }",
-		"",
-		"    Fraction& operator+=(const Fraction& other) { return *this = *this + other; }",
-		"    Fraction& operator-=(const Fraction& other) { return *this = *this - other; }",
-		"    Fraction& operator*=(const Fraction& other) { return *this = *this * other; }",
-		"    Fraction& operator/=(const Fraction& other) { return *this = *this / other; }",
-		"",
-		"    // 比较运算符",
-		"    bool operator==(const Fraction& other) const { return num * other.den == other.num * den; }",
-		"    bool operator!=(const Fraction& other) const { return !(*this == other); }",
-		"    bool operator<(const Fraction& other) const { return num * other.den < other.num * den; }",
-		"    bool operator<=(const Fraction& other) const { return *this < other || *this == other; }",
-		"    bool operator>(const Fraction& other) const { return !(*this <= other); }",
-		"    bool operator>=(const Fraction& other) const { return !(*this < other); }",
-		"",
-		"    // 工具函数",
-		"    Fraction abs() const { return Fraction(std::abs(num), den); }",
-		"",
-		"    Fraction reciprocal() const {",
-		"        if (num == 0) { throw invalid_argument(\"Cannot take reciprocal of zero\"); }",
-		"        return Fraction(den, num);",
-		"    }",
-		"",
-		"    double to_double() const { return (double)num / den; }",
-		"",
-		"    string to_string() const {",
-		"        if (den == 1) { return std::to_string(num); }",
-		"        return std::to_string(num) + \"/\" + std::to_string(den);",
-		"    }",
-		"",
-		"    bool is_integer() const { return den == 1; }",
-		"    bool is_zero() const { return num == 0; }",
-		"    bool is_positive() const { return num > 0; }",
-		"    bool is_negative() const { return num < 0; }",
-		"",
-		"    // 连分数表示",
-		"    vector<long long> to_continued_fraction() const {",
-		"        vector<long long> result;",
-		"        long long a = num, b = den;",
-		"",
-		"        while (b != 0) {",
-		"            result.push_back(a / b);",
-		"            long long temp = a % b;",
-		"            a = b;",
-		"            b = temp;",
-		"        }",
-		"        return result;",
-		"    }",
-		"",
-		"    static Fraction from_continued_fraction(const vector<long long>& cf) {",
-		"        if (cf.empty()) return Fraction(0);",
-		"",
-		"        Fraction result(cf.back());",
-		"        for (int i = cf.size() - 2; i >= 0; i--) { result = result.reciprocal() + Fraction(cf[i]); }",
-		"        return result;",
-		"    }",
-		"",
-		"    static Fraction approximate(double x, long long max_denominator = 1000000) {",
-		"        if (std::abs(x) < 1e-15) return Fraction(0);",
-		"",
-		"        bool negative = x < 0;",
-		"        if (negative) x = -x;",
-		"",
-		"        long long best_num = 1, best_den = 1;",
-		"        double best_error = std::abs(x - 1.0);",
-		"",
-		"        for (long long den = 1; den <= max_denominator; den++) {",
-		"            long long num = (long long)round(x * den);",
-		"            double error = std::abs(x - (double)num / den);",
-		"",
-		"            if (error < best_error) {",
-		"                best_error = error;",
-		"                best_num = num;",
-		"                best_den = den;",
-		"",
-		"                if (error < 1e-15) break;",
-		"            }",
-		"        }",
-		"",
-		"        return Fraction(negative ? -best_num : best_num, best_den);",
-		"    }",
-		"",
-		"    Fraction power(long long exp) const {",
-		"        if (exp == 0) return Fraction(1);",
-		"        if (exp < 0) return reciprocal().power(-exp);",
-		"",
-		"        Fraction result(1);",
-		"        Fraction base = *this;",
-		"",
-		"        while (exp > 0) {",
-		"            if (exp & 1) result *= base;",
-		"            base *= base;",
-		"            exp >>= 1;",
-		"        }",
-		"        return result;",
-		"    }",
-		"",
-		"    friend ostream& operator<<(ostream& os, const Fraction& f) { return os << f.to_string(); }",
-		"",
-		"    friend istream& operator>>(istream& is, Fraction& f) {",
-		"        string input;",
-		"        is >> input;",
-		"",
-		"        size_t slash_pos = input.find('/');",
-		"        if (slash_pos != string::npos) {",
-		"            long long n = stoll(input.substr(0, slash_pos));",
-		"            long long d = stoll(input.substr(slash_pos + 1));",
-		"            f = Fraction(n, d);",
-		"        } else {",
-		"            long long n = stoll(input);",
-		"            f = Fraction(n);",
-		"        }",
-		"        return is;",
-		"    }",
-		"};",
-		"",
-		"// 数学函数命名空间",
-		"namespace FractionMath {",
-		"// 计算两个分数的最大公约数",
-		"Fraction gcd(const Fraction& a, const Fraction& b) {",
-		"    if (b.is_zero()) return a.abs();",
-		"    return gcd(b, Fraction(a.num * b.den - b.num * a.den, a.den * b.den));",
-		"}",
-		"",
-		"// 计算两个分数的最小公倍数",
-		"Fraction lcm(const Fraction& a, const Fraction& b) { return (a * b).abs() / gcd(a, b); }",
-		"",
-		"// 分数的阶乘（仅对正整数）",
-		"Fraction factorial(long long n) {",
-		"    if (n < 0) throw invalid_argument(\"Factorial of negative number\");",
-		"",
-		"    Fraction result(1);",
-		"    for (long long i = 2; i <= n; i++) { result *= Fraction(i); }",
-		"    return result;",
-		"}",
-		"",
-		"// 组合数C(n, k)",
-		"Fraction combination(long long n, long long k) {",
-		"    if (k > n || k < 0) return Fraction(0);",
-		"    if (k == 0 || k == n) return Fraction(1);",
-		"",
-		"    k = min(k, n - k);  // 优化计算",
-		"",
-		"    Fraction result(1);",
-		"    for (long long i = 0; i < k; i++) {",
-		"        result *= Fraction(n - i);",
-		"        result /= Fraction(i + 1);",
-		"    }",
-		"    return result;",
-		"}",
-		"}",
-	})
-}),
+ps("12_utilities_fraction_h", [=[
+
+/**
+ * 分数类
+ * 时间复杂度：四则运算O(log(min(a,b)))，化简O(log(min(a,b)))
+ * 空间复杂度：O(1)
+ * 适用场景：精确分数运算、有理数计算
+ */
+struct Fraction {
+    long long num, den;  // 分子，分母
+
+    Fraction() : num(0), den(1) {}
+    Fraction(long long n) : num(n), den(1) {}
+    Fraction(long long n, long long d) : num(n), den(d) {
+        if (den < 0) {
+            num = -num;
+            den = -den;
+        }
+        reduce();
+    }
+
+    // 约分
+    void reduce() {
+        if (den == 0) { throw invalid_argument("Denominator cannot be zero"); }
+        long long g = gcd(std::abs(num), std::abs(den));
+        num /= g;
+        den /= g;
+    }
+
+    // 运算符重载
+    Fraction operator+(const Fraction& other) const {
+        return Fraction(num * other.den + other.num * den, den * other.den);
+    }
+
+    Fraction operator-(const Fraction& other) const {
+        return Fraction(num * other.den - other.num * den, den * other.den);
+    }
+
+    Fraction operator*(const Fraction& other) const { return Fraction(num * other.num, den * other.den); }
+
+    Fraction operator/(const Fraction& other) const {
+        if (other.num == 0) { throw invalid_argument("Division by zero"); }
+        return Fraction(num * other.den, den * other.num);
+    }
+
+    Fraction operator-() const { return Fraction(-num, den); }
+
+    Fraction& operator+=(const Fraction& other) { return *this = *this + other; }
+    Fraction& operator-=(const Fraction& other) { return *this = *this - other; }
+    Fraction& operator*=(const Fraction& other) { return *this = *this * other; }
+    Fraction& operator/=(const Fraction& other) { return *this = *this / other; }
+
+    // 比较运算符
+    bool operator==(const Fraction& other) const { return num * other.den == other.num * den; }
+    bool operator!=(const Fraction& other) const { return !(*this == other); }
+    bool operator<(const Fraction& other) const { return num * other.den < other.num * den; }
+    bool operator<=(const Fraction& other) const { return *this < other || *this == other; }
+    bool operator>(const Fraction& other) const { return !(*this <= other); }
+    bool operator>=(const Fraction& other) const { return !(*this < other); }
+
+    // 工具函数
+    Fraction abs() const { return Fraction(std::abs(num), den); }
+
+    Fraction reciprocal() const {
+        if (num == 0) { throw invalid_argument("Cannot take reciprocal of zero"); }
+        return Fraction(den, num);
+    }
+
+    double to_double() const { return (double)num / den; }
+
+    string to_string() const {
+        if (den == 1) { return std::to_string(num); }
+        return std::to_string(num) + "/" + std::to_string(den);
+    }
+
+    bool is_integer() const { return den == 1; }
+    bool is_zero() const { return num == 0; }
+    bool is_positive() const { return num > 0; }
+    bool is_negative() const { return num < 0; }
+
+    // 连分数表示
+    vector<long long> to_continued_fraction() const {
+        vector<long long> result;
+        long long a = num, b = den;
+
+        while (b != 0) {
+            result.push_back(a / b);
+            long long temp = a % b;
+            a = b;
+            b = temp;
+        }
+        return result;
+    }
+
+    static Fraction from_continued_fraction(const vector<long long>& cf) {
+        if (cf.empty()) return Fraction(0);
+
+        Fraction result(cf.back());
+        for (int i = cf.size() - 2; i >= 0; i--) { result = result.reciprocal() + Fraction(cf[i]); }
+        return result;
+    }
+
+    static Fraction approximate(double x, long long max_denominator = 1000000) {
+        if (std::abs(x) < 1e-15) return Fraction(0);
+
+        bool negative = x < 0;
+        if (negative) x = -x;
+
+        long long best_num = 1, best_den = 1;
+        double best_error = std::abs(x - 1.0);
+
+        for (long long den = 1; den <= max_denominator; den++) {
+            long long num = (long long)round(x * den);
+            double error = std::abs(x - (double)num / den);
+
+            if (error < best_error) {
+                best_error = error;
+                best_num = num;
+                best_den = den;
+
+                if (error < 1e-15) break;
+            }
+        }
+
+        return Fraction(negative ? -best_num : best_num, best_den);
+    }
+
+    Fraction power(long long exp) const {
+        if (exp == 0) return Fraction(1);
+        if (exp < 0) return reciprocal().power(-exp);
+
+        Fraction result(1);
+        Fraction base = *this;
+
+        while (exp > 0) {
+            if (exp & 1) result *= base;
+            base *= base;
+            exp >>= 1;
+        }
+        return result;
+    }
+
+    friend ostream& operator<<(ostream& os, const Fraction& f) { return os << f.to_string(); }
+
+    friend istream& operator>>(istream& is, Fraction& f) {
+        string input;
+        is >> input;
+
+        size_t slash_pos = input.find('/');
+        if (slash_pos != string::npos) {
+            long long n = stoll(input.substr(0, slash_pos));
+            long long d = stoll(input.substr(slash_pos + 1));
+            f = Fraction(n, d);
+        } else {
+            long long n = stoll(input);
+            f = Fraction(n);
+        }
+        return is;
+    }
+};
+
+// 数学函数命名空间
+namespace FractionMath {
+// 计算两个分数的最大公约数
+Fraction gcd(const Fraction& a, const Fraction& b) {
+    if (b.is_zero()) return a.abs();
+    return gcd(b, Fraction(a.num * b.den - b.num * a.den, a.den * b.den));
+}
+
+// 计算两个分数的最小公倍数
+Fraction lcm(const Fraction& a, const Fraction& b) { return (a * b).abs() / gcd(a, b); }
+
+// 分数的阶乘（仅对正整数）
+Fraction factorial(long long n) {
+    if (n < 0) throw invalid_argument("Factorial of negative number");
+
+    Fraction result(1);
+    for (long long i = 2; i <= n; i++) { result *= Fraction(i); }
+    return result;
+}
+
+// 组合数C(n, k)
+Fraction combination(long long n, long long k) {
+    if (k > n || k < 0) return Fraction(0);
+    if (k == 0 || k == n) return Fraction(1);
+
+    k = min(k, n - k);  // 优化计算
+
+    Fraction result(1);
+    for (long long i = 0; i < k; i++) {
+        result *= Fraction(n - i);
+        result /= Fraction(i + 1);
+    }
+    return result;
+}
+}
+]=]),
 
 }

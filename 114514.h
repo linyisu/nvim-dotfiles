@@ -2,6 +2,7 @@
 #include <bitset>
 #include <iostream>
 #include <map>
+#include <print>
 #include <queue>
 #include <ranges>
 #include <set>
@@ -109,114 +110,106 @@ void _print_one(const auto& x, int indent = 0)
              !VectorBitset<std::remove_cvref_t<decltype(x)>>)
 {
     if constexpr (StringLike<decltype(x)>) {
-        std::cerr << '"' << x << '"';
+        std::print(std::cerr, "\"{}\"", x);
     } else {
-        std::cerr << x;
+        std::print(std::cerr, "{}", x);
     }
 }
 
 template <Pair P>
 void _print_one(const P& p, int indent) {
-    std::cerr << '(';
+    std::print(std::cerr, "(");
     _print_one(p.first, indent);
-    std::cerr << ", ";
+    std::print(std::cerr, ", ");
     _print_one(p.second, indent);
-    std::cerr << ')';
+    std::print(std::cerr, ")");
 }
 
 template <Tuple T>
 void _print_one(const T& t, int indent) {
-    std::cerr << '(';
+    std::print(std::cerr, "(");
     bool first = true;
     std::apply(
         [&](auto&&... elems) {
-            ((std::cerr << (first ? "" : ", "), first = false, _print_one(elems, indent)), ...);
+            ((std::print(std::cerr, "{}{}", first ? "" : ", ", elems), first = false, _print_one(elems, indent)), ...);
         },
         t);
-    std::cerr << ')';
+    std::print(std::cerr, ")");
 }
 
 template <Range2D R>
 void _print_one(const R& r, int indent) {
-    std::cerr << "{\n";
+    std::println(std::cerr, "{{");
     int idx = 0;
     for (auto&& row : r) {
-        for (int i = 0; i < indent + 2; ++i) std::cerr << ' ';
-        std::cerr << "[" << idx++ << "]: {";
-
+        std::print(std::cerr, "{: <{}}[{}]: {{", "", indent + 2, idx++);
         bool first = true;
         for (auto&& e : row) {
-            if (!first) std::cerr << ", ";
+            std::print(std::cerr, "{}{}", first ? "" : ", ", "");
             first = false;
             _print_one(e, indent + 2);
         }
-        std::cerr << "}\n";
+        std::println(std::cerr, "}}");
     }
-    for (int i = 0; i < indent; ++i) std::cerr << ' ';
-    std::cerr << "}";
+    std::print(std::cerr, "{: <{}}}", "", indent);
 }
 
 template <VectorBitset VB>
 void _print_one(const VB& vb, int indent) {
     if (vb.empty()) {
-        std::cerr << "{}";
+        std::print(std::cerr, "{{}}");
         return;
     }
 
-    // Find the maximum bitset size for alignment
     std::size_t max_size = 0;
     for (const auto& bitset : vb) {
         max_size = std::max(max_size, bitset.size());
     }
 
-    std::cerr << "{\n";
+    std::println(std::cerr, "{{");
     int idx = 0;
     for (const auto& bitset : vb) {
-        for (int i = 0; i < indent + 2; ++i) std::cerr << ' ';
-        std::cerr << "[" << idx++ << "]: ";
-
-        // Print leading zeros to align
+        std::print(std::cerr, "{: <{}}[{}]: ", "", indent + 2, idx++);
         std::string bitstr = bitset.to_string();
         std::size_t leading_zeros = max_size - bitset.size();
         for (std::size_t i = 0; i < leading_zeros; ++i) {
-            std::cerr << '0';
+            std::print(std::cerr, "0");
         }
-        std::cerr << bitstr << '\n';
+        std::println(std::cerr, "{}", bitstr);
     }
-    for (int i = 0; i < indent; ++i) std::cerr << ' ';
-    std::cerr << "}";
+    std::print(std::cerr, "{: <{}}}", "", indent);
 }
 
 template <Range R>
 void _print_one(const R& r, int indent)
     requires(!Range2D<R>)
 {
-    std::cerr << '{';
+    std::print(std::cerr, "{{");
     bool first = true;
     for (auto&& e : r) {
-        if (!first) std::cerr << ", ";
+        std::print(std::cerr, "{}{}", first ? "" : ", ", "");
         first = false;
         _print_one(e, indent);
     }
-    std::cerr << '}';
+    std::print(std::cerr, "}}");
 }
 
 template <Queue Q>
 void _print_one(Q q, int indent = 0) {
-    std::cerr << "queue{";
+    std::print(std::cerr, "queue{{");
     bool first = true;
     while (!q.empty()) {
-        if (!first) std::cerr << ", ";
+        std::print(std::cerr, "{}{}", first ? "" : ", ", "");
         first = false;
         _print_one(q.front(), indent);
         q.pop();
     }
-    std::cerr << '}';
+    std::print(std::cerr, "}}");
 }
 
 template <Stack S>
 void _print_one(S s, int indent = 0) {
-    std::cerr << "stack{";
+    std::print(std::cerr, "stack{{");
     std::vector<typename S::value_type> elements;
     while (!s.empty()) {
         elements.push_back(s.top());
@@ -225,16 +218,16 @@ void _print_one(S s, int indent = 0) {
 
     bool first = true;
     for (auto it = elements.rbegin(); it != elements.rend(); ++it) {
-        if (!first) std::cerr << ", ";
+        std::print(std::cerr, "{}{}", first ? "" : ", ", "");
         first = false;
         _print_one(*it, indent);
     }
-    std::cerr << '}';
+    std::print(std::cerr, "}}");
 }
 
 template <PriorityQueue PQ>
 void _print_one(PQ pq, int indent = 0) {
-    std::cerr << "priority_queue{";
+    std::print(std::cerr, "priority_queue{{");
     std::vector<typename PQ::value_type> elements;
     while (!pq.empty()) {
         elements.push_back(pq.top());
@@ -243,37 +236,35 @@ void _print_one(PQ pq, int indent = 0) {
 
     bool first = true;
     for (const auto& elem : elements) {
-        if (!first) std::cerr << ", ";
+        std::print(std::cerr, "{}{}", first ? "" : ", ", "");
         first = false;
         _print_one(elem, indent);
     }
-    std::cerr << '}';
+    std::print(std::cerr, "}}");
 }
 
 template <AssociativeContainer AC>
 void _print_one(const AC& ac, int indent = 0) {
     if constexpr (requires { typename AC::mapped_type; }) {
-        // map-like containers
-        std::cerr << "map{";
+        std::print(std::cerr, "map{{");
     } else {
-        // set-like containers
-        std::cerr << "set{";
+        std::print(std::cerr, "set{{");
     }
 
     bool first = true;
     for (const auto& elem : ac) {
-        if (!first) std::cerr << ", ";
+        std::print(std::cerr, "{}{}", first ? "" : ", ", "");
         first = false;
         _print_one(elem, indent);
     }
-    std::cerr << '}';
+    std::print(std::cerr, "}}");
 }
 
 template <typename T>
 void _debug_print_args(const char* names, const T& arg) {
-    std::cerr << names << " = ";
+    std::print(std::cerr, "{} = ", names);
     _print_one(arg, 0);
-    std::cerr << '\n';
+    std::println(std::cerr, "");
 }
 
 template <typename T, typename... Args>
@@ -281,9 +272,9 @@ void _debug_print_args(const char* names, const T& arg, const Args&... args) {
     const char* comma = names;
     while (*comma && *comma != ',') comma++;
 
-    std::cerr << std::string(names, comma) << " = ";
+    std::print(std::cerr, "{: <{}} = ", std::string(names, comma - names), 0);
     _print_one(arg, 0);
-    std::cerr << '\n';
+    std::println(std::cerr, "");
 
     if (*comma == ',') {
         comma++;
@@ -292,9 +283,9 @@ void _debug_print_args(const char* names, const T& arg, const Args&... args) {
     }
 }
 
-#define dbg(...)                                                      \
-    do {                                                                \
-        std::cerr << "=== DEBUG [Line " << __LINE__ << "] ===" << '\n'; \
-        _debug_print_args(#__VA_ARGS__, __VA_ARGS__);                   \
-        std::cerr << "=============" << '\n';                           \
+#define dbg(...)                                                    \
+    do {                                                              \
+        std::println(std::cerr, "=== DEBUG [Line {}] ===", __LINE__); \
+        _debug_print_args(#__VA_ARGS__, __VA_ARGS__);                 \
+        std::println(std::cerr, "=============");                     \
     } while (0)

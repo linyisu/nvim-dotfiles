@@ -115,11 +115,9 @@ int opy[] = {{{}}};
     )),
 
     ps("qpow", [[
-long long qpow(long long a, long long b)
-{
+long long qpow(long long a, long long b) {
     long long t = 1;
-    while (b)
-    {
+    while (b) {
         if (b & 1) t = t * a;
         a = a * a;
         b >>= 1;
@@ -128,12 +126,10 @@ long long qpow(long long a, long long b)
 }
     ]]),
     ps("qpowM", [[
-long long qpow(long long a, long long b)
-{
+long long qpow(long long a, long long b) {
     long long t = 1;
     a %= MOD;
-    while (b)
-    {
+    while (b) {
         if (b & 1) t = t * a % MOD;
         a = a * a % MOD;
         b >>= 1;
@@ -143,22 +139,19 @@ long long qpow(long long a, long long b)
 long long inv(long long x) { return qpow(x, MOD - 2);}
     ]]),
     ps("exgcd", [[
-long long exgcd(long long a, long long b, long long& x, long long& y)
-{
-    if (!b) { x = 1; y = 0; return a; }
-    long long d = exgcd(b, a % b, x, y), k = x;
-    x = y, y = k - a / b * y;
-    return d;
+long long exgcd(long long a, long long b, long long& x, long long& y) {
+	if (!b) { x = 1, y = 0; return a; }
+	long long g = exgcd(b, a % b, x, y);
+	tie(x, y) = tuple(y, x - a / b * y);
+	return g;
 }
 long long inv(long long x) { long long p, q, g = exgcd(x, MOD, p, q); return g - 1 ? -1 : (p % MOD + MOD) % MOD; }
     ]]),
     ps("euler", [[
-long long Phi(long long n)
-{
+long long Phi(long long n) {
     long long res = n;
     for (int i = 2; i <= n / i; i ++)
-        if (!(n % i))
-        {
+        if (!(n % i)) {
             res = res / i * (i - 1);
             while (!(n % i))
                 n /= i;
@@ -172,26 +165,21 @@ long long Phi(long long n)
 const int N = 1e5 + 5;
 vector<int> primes, phi(N), pre(N);
 vector<bool> isPrime(N, true);
-void euler_sieve()
-{
+void euler_sieve() {
     isPrime[0] = isPrime[1] = false;
     phi[1] = pre[1] = 1;
-    for (int i = 2; i < N; i ++)
-    {
-        if (isPrime[i])
-        {
+    for (int i = 2; i < N; i ++) {
+        if (isPrime[i]) {
             primes.emplace_back(i);
             phi[i] = i - 1;
         }
-        for (auto prime : primes)
-        {
+        for (auto prime : primes) {
             if (i * prime >= N)
                 break;
             isPrime[i * prime] = false;
             if (i % prime)
                 phi[i * prime] = phi[i] * (prime - 1);
-            else
-            {
+            else {
                 phi[i * prime] = phi[i] * prime;
                 break;
             }
@@ -205,12 +193,16 @@ void euler_sieve()
 void rd() {}
 void wr() {}
 void _wr(char c) { putchar(c); }
-void _wr(const std::string &s) { fputs(s.c_str(), stdout); }
-void rd(char &c) { c = getchar(); while (isspace(c)) c = getchar(); }
-void rd(std::string &s) { s.clear(); char ch = getchar(); while (isspace(ch)) ch = getchar(); while (!isspace(ch) && ch != EOF) { s += ch; ch = getchar(); } }
-template<typename T, typename... Args> void rd(T &x, Args&... args) { x = 0; char ch = getchar(); int f = 1; while (ch < '0' || ch > '9') { if (ch == '-') f = -1; ch = getchar(); } while (ch >= '0' && ch <= '9') { x = x * 10 + ch - '0'; ch = getchar(); } x *= f; rd(args...); }
-template<typename T> void _wr(T x) { if (x < 0) { putchar('-'); x = -x; } if (x == 0) { putchar('0'); return; } char buf[21]; int i = 0; while (x > 0) { buf[i ++] = x % 10 + '0'; x /= 10; } while (i -- > 0) putchar(buf[i]); }
-template<typename T, typename... Args> void wr(T x, Args... args) { _wr(x); if (sizeof...(args) > 0) putchar(' '); wr(args...); }
+void _wr(const string &s) { fputs(s.c_str(), stdout); }
+void _wr(const char *s) { fputs(s, stdout); }
+template<typename T> void _rd(T &x) { x = 0; char ch = getchar(); int f = 1; while (ch < '0' || ch > '9') { if (ch == '-') f = -1; ch = getchar(); } while (ch >= '0' && ch <= '9') { x = x * 10 + ch - '0'; ch = getchar(); } x *= f; }
+void _rd(double &x) { x = 0; char ch = getchar(); int f = 1; while (ch < '0' || ch > '9') { if (ch == '-') f = -1; ch = getchar(); } while (ch >= '0' && ch <= '9') { x = x * 10 + ch - '0'; ch = getchar(); } if (ch == '.') { double base = 0.1; ch = getchar(); while (ch >= '0' && ch <= '9') { x += base * (ch - '0'); base *= 0.1; ch = getchar(); } } x *= f; }
+void _rd(char &c) { c = getchar(); while (isspace(c)) c = getchar(); }
+void _rd(string &s) { s.clear(); char ch = getchar(); while (isspace(ch)) ch = getchar(); while (!isspace(ch) && ch != EOF) { s += ch; ch = getchar(); } }
+template<typename T, typename... Args> void rd(T &x, Args&... args) { _rd(x); rd(args...); }
+template<typename T> void _wr(T x) { if (x < 0) { putchar('-'); x = -x; } if (x == 0) { putchar('0'); return; } char buf[21]; int i = 0; while (x > 0) { buf[i++] = x % 10 + '0'; x /= 10; } while (i-- > 0) putchar(buf[i]); }
+void _wr(double x, int precision = 6) { if (x < 0) { putchar('-'); x = -x; } long long int_part = (long long)x; _wr(int_part); putchar('.'); double dec_part = x - int_part; for (int i = 0; i < precision; i++) { dec_part *= 10; putchar((int)dec_part + '0'); dec_part -= (int)dec_part; } }
+template<typename T, typename... Args> void wr(T x, Args... args) { _wr(x); if (sizeof...(args) > 0) { putchar(' '); } wr(args...); }
 template<typename... Args> void wrln(Args... args) { wr(args...); putchar('\n'); }
     ]]),
 
@@ -227,12 +219,6 @@ template<typename... Args> void wrln(Args... args) { wr(args...); putchar('\n');
     s("fi", { t({ "first" }) }),
     s("se", { t({ "second" }) }),
 
-    p(".write", {
-        f(function(_, parent)
-            local var = parent.snippet.env.POSTFIX_MATCH
-            return 'for (int {} = 0; _ < ' .. var .. '.size(); _ ++) cerr << ' .. var .. '[_] << " "; cerr << \'\\n\';'
-        end, {}),
-    }),
     s("rng", { t("mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());"), }),
 
     s("vi", fmt([[vector<{}> {}{}]], { i(1, "int"), i(2, "v"),

@@ -1451,31 +1451,24 @@ template <typename T, class Info, class Laz> struct SegTree {
         return query(jobl, jobr, l, mid, u << 1) + query(jobl, jobr, mid + 1, r, u << 1 | 1);
     }
 };
-struct Laz 
-{
+struct Laz {
     long long add = 0;
-    void apply(const Laz &tag) 
-    {
-        if (tag.add) 
-        {
+    void apply(const Laz &tag) {
+        if (tag.add) {
             add += tag.add;
         }
     }
 };
-template <typename T> struct Info 
-{
+template <typename T> struct Info {
     long long sum = 0;
     Info() {}
     Info(T x): sum(x) {}
-    void apply(const Laz &tag, int len) 
-    {
-        if (tag.add) 
-        {
+    void apply(const Laz &tag, int len) {
+        if (tag.add) {
             sum += tag.add * len;
         }
     }
-    Info operator+(const Info &a) const 
-    {
+    Info operator+(const Info &a) const {
         Info res;
         res.sum = sum + a.sum;
         return res;

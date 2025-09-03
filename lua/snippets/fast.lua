@@ -16,6 +16,8 @@ local p = require("luasnip.extras.postfix").postfix
 -- local same = function(index) return f(function(arg) return arg[1] end, { index }) end
 
 return {
+    s("segt", fmt([[SegTree<{}, Info<{}>, Laz> seg({});]], { i(1, t "int"), rep(1), i(2, t "n") })),
+
     s("sort", fmt([[sort({}.begin(), {}.end());]], { i(1), rep(1) })),
     s("uni", fmt([[sort({}.begin(), {}.end());
 {}.erase(unique({}.begin(), {}.end()), {}.end());]], { i(1), rep(1), rep(1), rep(1), rep(1), rep(1) })),

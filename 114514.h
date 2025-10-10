@@ -25,8 +25,7 @@ concept Pair = requires(T a) {
 } && !StringLike<T>;
 
 template <typename T>
-concept Tuple = requires { typename std::tuple_size<std::remove_cvref_t<T>>::type; } &&
-                std::tuple_size_v<std::remove_cvref_t<T>> >= 2 && !Pair<T> && !StringLike<T>;
+concept Tuple = requires { typename std::tuple_size<std::remove_cvref_t<T>>::type; } && std::tuple_size_v<std::remove_cvref_t<T>> >= 2 && !Pair<T> && !StringLike<T>;
 
 template <typename T>
 concept Queue = requires(T t) {
@@ -71,11 +70,9 @@ concept AssociativeContainer =
         t.end();
         t.size();
         t.empty();
-    } && (std::same_as<std::decay_t<T>, std::set<typename T::key_type>> ||
-          std::same_as<std::decay_t<T>, std::multiset<typename T::key_type>> ||
+    } && (std::same_as<std::decay_t<T>, std::set<typename T::key_type>> || std::same_as<std::decay_t<T>, std::multiset<typename T::key_type>> ||
           std::same_as<std::decay_t<T>, std::map<typename T::key_type, typename T::mapped_type>> ||
-          std::same_as<std::decay_t<T>, std::multimap<typename T::key_type, typename T::mapped_type>> ||
-          std::same_as<std::decay_t<T>, std::unordered_set<typename T::key_type>> ||
+          std::same_as<std::decay_t<T>, std::multimap<typename T::key_type, typename T::mapped_type>> || std::same_as<std::decay_t<T>, std::unordered_set<typename T::key_type>> ||
           std::same_as<std::decay_t<T>, std::unordered_multiset<typename T::key_type>> ||
           std::same_as<std::decay_t<T>, std::unordered_map<typename T::key_type, typename T::mapped_type>> ||
           std::same_as<std::decay_t<T>, std::unordered_multimap<typename T::key_type, typename T::mapped_type>>);
@@ -92,22 +89,18 @@ concept VectorBitset = requires(T t) {
 };
 
 template <typename T>
-concept Range =
-    requires(T a) {
-        std::ranges::begin(a);
-        std::ranges::end(a);
-    } && !StringLike<T> && !Pair<T> && !Tuple<T> && !Queue<T> && !Stack<T> && !PriorityQueue<T> &&
-    !AssociativeContainer<T> && !VectorBitset<T>;
+concept Range = requires(T a) {
+    std::ranges::begin(a);
+    std::ranges::end(a);
+} && !StringLike<T> && !Pair<T> && !Tuple<T> && !Queue<T> && !Stack<T> && !PriorityQueue<T> && !AssociativeContainer<T> && !VectorBitset<T>;
 
 template <typename T>
 concept Range2D = Range<T> && requires(T t) { typename T::value_type; } && Range<typename T::value_type>;
 
 void _print_one(const auto& x, int indent = 0)
-    requires(!Queue<std::remove_cvref_t<decltype(x)>> && !Stack<std::remove_cvref_t<decltype(x)>> &&
-             !PriorityQueue<std::remove_cvref_t<decltype(x)>> &&
-             !AssociativeContainer<std::remove_cvref_t<decltype(x)>> && !Pair<std::remove_cvref_t<decltype(x)>> &&
-             !Tuple<std::remove_cvref_t<decltype(x)>> && !Range<std::remove_cvref_t<decltype(x)>> &&
-             !VectorBitset<std::remove_cvref_t<decltype(x)>>)
+    requires(!Queue<std::remove_cvref_t<decltype(x)>> && !Stack<std::remove_cvref_t<decltype(x)>> && !PriorityQueue<std::remove_cvref_t<decltype(x)>> &&
+             !AssociativeContainer<std::remove_cvref_t<decltype(x)>> && !Pair<std::remove_cvref_t<decltype(x)>> && !Tuple<std::remove_cvref_t<decltype(x)>> &&
+             !Range<std::remove_cvref_t<decltype(x)>> && !VectorBitset<std::remove_cvref_t<decltype(x)>>)
 {
     if constexpr (StringLike<decltype(x)>) {
         std::print(std::cerr, "\"{}\"", x);
@@ -151,7 +144,8 @@ void _print_one(const R& r, int indent) {
         }
         std::println(std::cerr, "}}");
     }
-    std::print(std::cerr, "{: <{}}}", "", indent);
+    // 动态缩进替代非constexpr格式化
+    std::print(std::cerr, "{}{}", std::string(indent, ' '), "}");
 }
 
 template <VectorBitset VB>
@@ -177,7 +171,8 @@ void _print_one(const VB& vb, int indent) {
         }
         std::println(std::cerr, "{}", bitstr);
     }
-    std::print(std::cerr, "{: <{}}}", "", indent);
+    // 动态缩进替代非constexpr格式化
+    std::print(std::cerr, "{}{}", std::string(indent, ' '), "}");
 }
 
 template <Range R>

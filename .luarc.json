@@ -1,5 +1,3 @@
 {
-    "diagnostics.globals": [
-        "lspkind"
-    ]
+  "format.enable": false
 }

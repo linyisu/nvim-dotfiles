@@ -7,6 +7,8 @@
 ---@type LazySpec
 return {
   "AstroNvim/astrocommunity",
+  { import = "astrocommunity.pack.cpp" },
+  { import = "astrocommunity.pack.dart" },
   { import = "astrocommunity.pack.lua" },
   { import = "astrocommunity.pack.python" },
   { import = "astrocommunity.pack.rust" },

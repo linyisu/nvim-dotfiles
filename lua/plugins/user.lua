@@ -25,12 +25,12 @@ return {
       dashboard = {
         preset = {
           keys = {
+            { key = "e", action = "<Leader>ta", icon = "", desc = "Leetcode" },
             { key = "f", action = "<Leader>ff", icon = "", desc = "Find File" },
             { key = "r", action = "<Leader>fo", icon = "󰈙", desc = "Recent Files" },
-            -- { key = "w", action = "<Leader>fw", icon = "", desc = "Find Text" },
             { key = "s", action = "<Leader>Sl", icon = "", desc = "Last Session" },
             { key = "m", action = "<Leader>m", icon = "", desc = "Marks" },
-            { icon = "󰒲 ", key = "L", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
+            { icon = "󰒲 ", key = "l", desc = "Lazy", action = ":Lazy", enabled = package.loaded.lazy ~= nil },
             {
               icon = " ",
               key = "c",

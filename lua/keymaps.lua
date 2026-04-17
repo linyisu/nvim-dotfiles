@@ -1,19 +1,38 @@
 local map = vim.keymap.set
-
--- Add your custom mappings here.
--- Example:
--- map("n", "<Leader>w", "<Cmd>w<CR>", { desc = "Save file" })
+local opts = { noremap = true, silent = true }
 
 map("n", "<Leader>m", function() Snacks.picker.zoxide() end, { desc = "Open zoxide picker" })
 
--- Alt + j/k to move lines up and down
-map("n", "<A-Up>", ":m .-2<CR>==", { desc = "Move line up" })
-map("n", "<A-Down>", ":m .+1<CR>==", { desc = "Move line down" })
-map("n", "<A-k>", ":m .-2<CR>==", { desc = "Move line up" })
-map("n", "<A-j>", ":m .+1<CR>==", { desc = "Move line down" })
+-- Alt + Arrow as aliases for Alt + j/k (handled by mini.move)
+map({ "n", "v" }, "<A-Up>", "<A-k>", { remap = true, silent = true })
+map({ "n", "v" }, "<A-Down>", "<A-j>", { remap = true, silent = true })
 
--- Typst preview
-map("n", "<Leader>tp", "<Cmd>TypstPreview<CR>", { desc = "TypstPreview" })
+-- Ctrl + scroll wheel to change font size (Neovide only)
+if vim.g.neovide then
+  vim.g.neovide_scale_factor = 1.0
+  map({ "n", "v", "i" }, "<C-ScrollWheelUp>",
+    function() vim.g.neovide_scale_factor = vim.g.neovide_scale_factor * 1.1 end, opts)
+  map({ "n", "v", "i" }, "<C-ScrollWheelDown>",
+    function() vim.g.neovide_scale_factor = vim.g.neovide_scale_factor / 1.1 end, opts)
+end
+
+-- Ctrl + Arrow to resize splits
+map("n", "<C-Up>", ":resize -2<CR>", opts)
+map("n", "<C-Down>", ":resize +2<CR>", opts)
+map("n", "<C-Left>", ":vertical resize -2<CR>", opts)
+map("n", "<C-Right>", ":vertical resize +2<CR>", opts)
+
+-- CompetiTest (competitive programming)
+map("n", "<Leader>cpr", function()
+  require("competitest.receive").stop_receiving()
+  vim.cmd("CompetiTest receive problem")
+end, { desc = "CompetiTest receive problem" })
+map("n", "<Leader>cpc", function()
+  require("competitest.receive").stop_receiving()
+  vim.cmd("CompetiTest receive contest")
+end, { desc = "CompetiTest receive contest" })
+map("n", "<Leader>cpt", "<Cmd>CompetiTest run<CR>", { desc = "CompetiTest run" })
+map("n", "<Leader>cpg", "<Cmd>CompetiTest receive testcases<CR>", { desc = "CompetiTest receive testcases" })
 
 -- start Leetcode
 map("n", "<Leader>ta", "<Cmd>Leet<CR>", { desc = "Leetcode start" })

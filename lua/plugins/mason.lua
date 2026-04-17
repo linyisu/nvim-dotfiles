@@ -16,9 +16,6 @@ return {
 
         -- install formatters
         "stylua",
-
-        -- install debuggers
-        "debugpy",
       },
     },
   },

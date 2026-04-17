@@ -8,12 +8,8 @@
 return {
   "AstroNvim/astrocommunity",
   { import = "astrocommunity.pack.cpp" },
-  { import = "astrocommunity.pack.dart" },
-  { import = "astrocommunity.pack.lua" },
   { import = "astrocommunity.pack.python" },
   { import = "astrocommunity.pack.rust" },
-  { import = "astrocommunity.pack.typst" },
-  { import = "astrocommunity.pack.markdown" },
   { import = "astrocommunity.colorscheme.tokyonight-nvim" },
   -- import/override with your plugins folder
 }

@@ -2,6 +2,7 @@ local map = vim.keymap.set
 local opts = { noremap = true, silent = true }
 
 map("n", "<Leader>m", function() Snacks.picker.zoxide() end, { desc = "Open zoxide picker" })
+map("n", "<Leader>rn", function() vim.lsp.buf.rename() end, { desc = "Rename symbol" })
 
 -- Alt + Arrow as aliases for Alt + j/k (handled by mini.move)
 map({ "n", "v" }, "<A-Up>", "<A-k>", { remap = true, silent = true })
@@ -32,6 +33,8 @@ map("n", "<Leader>cpc", function()
   vim.cmd("CompetiTest receive contest")
 end, { desc = "CompetiTest receive contest" })
 map("n", "<Leader>cpt", "<Cmd>CompetiTest run<CR>", { desc = "CompetiTest run" })
+map("n", "<Leader>cpu", "<Cmd>CompetiTest show_ui<CR>", { desc = "CompetiTest show UI" })
+map("n", "<Leader>tt", "<Cmd>CompetiTest run<CR>", { desc = "CompetiTest run" })
 map("n", "<Leader>cpg", "<Cmd>CompetiTest receive testcases<CR>", { desc = "CompetiTest receive testcases" })
 
 -- start Leetcode

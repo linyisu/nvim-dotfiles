@@ -2,7 +2,6 @@ return {
   {
     "kawre/leetcode.nvim",
     dependencies = {
-      -- include a picker of your choice, see picker section for more details
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",
     },
@@ -42,11 +41,10 @@ return {
 
             local config = require "leetcode.config"
             local raw_path = question:path()
-            local safe_path = raw_path:gsub("\\", "/") -- 替换 Windows 路径分隔符
+            local safe_path = raw_path:gsub("\\", "/")
 
             local cargo_path = config.user.storage.home .. "/Cargo.toml"
 
-            -- 定义针对 LeetCode 环境的 Cargo.toml 内容
             local content = [[
 [package]
 name = "leetcode"
@@ -62,13 +60,11 @@ itertools = "0.14.0"
 name = "solution"
 path = "%s"
 ]]
-            -- 将当前题目文件路径写入 Cargo.toml
             local file = io.open(cargo_path, "w")
             if file then
               file:write(content:format(safe_path))
               file:close()
 
-              -- 重启 LSP 以识别新生成的项目结构
               vim.cmd "RustAnalyzer restart"
             end
           end,

@@ -39,7 +39,7 @@ return {
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = {
-      ensure_installed = { "clangd" }, -- automatically install lsp
+      ensure_installed = { "clangd", "clang-format" },
     },
   },
 }

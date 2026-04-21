@@ -26,6 +26,17 @@ return {
     },
     -- Autocommands
     autocmds = {
+      no_comment_continuation = {
+        {
+          event = "FileType",
+          desc = "Disable comment continuation on o/O",
+          callback = function()
+            vim.schedule(function()
+              vim.opt_local.formatoptions:remove({ "o", "r" })
+            end)
+          end,
+        },
+      },
       cpp_indent = {
         {
           event = "FileType",
@@ -81,8 +92,50 @@ return {
         -- this is useful for naming menus
         -- ["<Leader>b"] = { desc = "Buffers" },
 
-        -- setting a mapping to false will disable it
-        -- ["<C-S>"] = false,
+        -- disable basic keymaps
+        ["<Leader>w"] = false,
+        ["<Leader>q"] = false,
+        ["<Leader>Q"] = false,
+        ["<Leader>n"] = false,
+        ["<Leader>/"] = false,
+
+        -- move terminal keymaps from <Leader>t to <Leader>T
+        ["<Leader>t"]  = false,
+        ["<Leader>tf"] = false,
+        ["<Leader>th"] = false,
+        ["<Leader>tv"] = false,
+        ["<Leader>tt"] = false,
+        ["<Leader>tn"] = false,
+        ["<Leader>tp"] = false,
+        ["<Leader>tu"] = false,
+        ["<Leader>tl"] = false,
+        ["<Leader>T"]  = { desc = "Terminal" },
+        ["<Leader>Tf"] = { "<Cmd>ToggleTerm direction=float<CR>",            desc = "ToggleTerm float" },
+        ["<Leader>Th"] = { "<Cmd>ToggleTerm size=10 direction=horizontal<CR>", desc = "ToggleTerm horizontal" },
+        ["<Leader>Tv"] = { "<Cmd>ToggleTerm size=80 direction=vertical<CR>",   desc = "ToggleTerm vertical" },
+        ["<Leader>Tg"] = { function() require("astrocore").toggle_term_cmd "lazygit" end, desc = "Lazygit" },
+
+        -- disable git keymaps
+        ["<Leader>g"]  = false,
+        ["<Leader>gg"] = false,
+        ["<Leader>gb"] = false,
+        ["<Leader>gc"] = false,
+        ["<Leader>gC"] = false,
+        ["<Leader>gt"] = false,
+        ["<Leader>gT"] = false,
+        ["<Leader>go"] = false,
+        ["<Leader>gl"] = false,
+        ["<Leader>gp"] = false,
+        ["<Leader>gr"] = false,
+        ["<Leader>gR"] = false,
+        ["<Leader>gs"] = false,
+        ["<Leader>gS"] = false,
+        ["<Leader>gd"] = false,
+      },
+      x = {
+        ["<Leader>/"] = false,
+        ["<Leader>go"] = false,
+        ["<Leader>la"] = false,
       },
     },
   },

@@ -1,13 +1,13 @@
 return {
   {
     "xeluxee/competitest.nvim",
-    -- dir = "C:/Users/linyi/Projects/Lua/competitest.nvim",
     dependencies = { "MunifTanjim/nui.nvim" },
     cmd = "CompetiTest",
-    -- ft = { "cpp" },
-    -- wrap_windows = { "se" },
     init = function()
+      local group = vim.api.nvim_create_augroup("CompetiTestLayout", { clear = true })
+
       vim.api.nvim_create_autocmd("WinResized", {
+        group = group,
         callback = function()
           local wins = {}
           for _, winid in ipairs(vim.api.nvim_list_wins()) do
@@ -26,7 +26,9 @@ return {
           end
         end,
       })
+
       vim.api.nvim_create_autocmd("BufWinEnter", {
+        group = group,
         callback = function(ev)
           local buf = ev.buf
           vim.schedule(function()
@@ -49,9 +51,9 @@ return {
       compile_command = {
         cpp = { exec = "g++", args = { "-std=c++23", "-O2", "-Wall", "$(FNAME)", "-o", "$(FNOEXT)" } },
       },
-      received_problems_path = "$(HOME)\\acm\\problems\\$(JUDGE)\\$(PROBLEM)\\$(PROBLEM).$(FEXT)",
-      received_contests_directory = "$(HOME)\\acm\\contests\\$(JUDGE)\\$(CONTEST)",
-      received_contests_problems_path = "$(PROBLEM)\\$(PROBLEM).$(FEXT)",
+      received_problems_path = "$(HOME)/acm/problems/$(JUDGE)/$(PROBLEM)/$(PROBLEM).$(FEXT)",
+      received_contests_directory = "$(HOME)/acm/contests/$(JUDGE)/$(CONTEST)",
+      received_contests_problems_path = "$(PROBLEM)/$(PROBLEM).$(FEXT)",
       runner_ui = {
         interface = "split",
       },
@@ -59,7 +61,6 @@ return {
         position = "right",
         relative_to_editor = true,
         total_width = 0.4,
-        -- auto_open = true,
         vertical_layout = {
           {
             1,

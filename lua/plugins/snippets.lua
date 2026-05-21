@@ -16,7 +16,6 @@ return {
       local rep = require("luasnip.extras").rep
 
       ls.add_snippets("cpp", {
-        -- templates
         s("normal", {
           t({ "#include <bits/stdc++.h>", "", "void o() {", "\t" }),
           i(0),
@@ -34,13 +33,11 @@ return {
             "\treturn 0;", "}" }),
         }),
 
-        -- I/O
         s("cin",   { t("std::cin >> "), i(1), t(";"), i(0) }),
         s("cout",  { t("std::cout << "), i(1), t(' << "\\n";'), i(0) }),
         s("cerr",  { t("std::cerr << "), i(1), t(' << "\\n";'), i(0) }),
         s("write", { t("cout << "), i(1), t(' << "\\n";') }),
 
-        -- containers (type-parameterized)
         s("vec",  { t("std::vector<"), i(1, "T"), t("> "), i(0) }),
         s("map",  { t("std::map<"), i(1, "K"), t(", "), i(2, "V"), t("> "), i(0) }),
         s("ump",  { t("std::unordered_map<"), i(1, "K"), t(", "), i(2, "V"), t("> "), i(0) }),
@@ -54,7 +51,6 @@ return {
         s("str",  { t("std::string "), i(0) }),
         s("pair", { t("std::pair<"), i(1, "T1"), t(", "), i(2, "T2"), t("> "), i(0) }),
 
-        -- concrete container declarations
         s("vi",  fmt([[vector<{}> {}{}]], { i(1, "int"), i(2, "v"),
           c(3, { sn(nil, { t("("), i(1, "n + 1"), t(");") }), t(";"), t("") }) })),
         s("vvi", { c(1, {
@@ -70,13 +66,11 @@ return {
         s("fi",  { t("first") }),
         s("se",  { t("second") }),
 
-        -- constants
         s("mod", fmt("constexpr int mod = {};", { c(1, { t("1e9 + 7"), t("998244353"), t("") }) })),
-        s("mod", fmt("constexpr int inf = {};", { c(1, { t("0x3f3f3f3f"), t("0x3f3f3f3f3f3f3f3f") }) })),
+        s("inf", fmt("constexpr int inf = {};", { c(1, { t("0x3f3f3f3f"), t("0x3f3f3f3f3f3f3f3f") }) })),
         s("const", { t("constexpr int "), i(1, "N"), t(" = "), i(2, "1e5"), t(";") }),
         s("rng", { t("mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());") }),
 
-        -- control flow
         s("for", fmt([[for (int {} = {}; {} {}; {} {})]], {
           i(1, "i"), i(2, "1"), rep(1), i(3), rep(1),
           c(4, { t("++"), t("--"), t(" ") }),
@@ -101,13 +95,11 @@ return;]], { c(1, { t("No"), t("NO") }) })),
           end, { 2 }),
         })),
 
-        -- lambda / struct
         s("lambda", { t("auto "), i(1, "f"), t(" = [&]("), i(2, "int x"), t(") -> "), i(3, "int"), t(" {"), i(4), t("};") }),
         s("struct", {
           t("struct "), i(1, "node"), t({ "", "{", "    " }), i(2), t({ "", "};" }),
         }),
 
-        -- algorithms
         s("segt", fmt([[SegTree<{}, Info<{}>, Laz> seg({});]], { i(1, "int"), rep(1), i(2, "n") })),
 
         s("sort",  fmt([[sort({}.begin(), {}.end());]], { i(1), rep(1) })),
@@ -130,23 +122,23 @@ auto getRank = [&](int x) -> int {{ return lower_bound({}.begin() + 1, {}.end(),
           { i(1), rep(1), rep(1), rep(1), rep(1), rep(1), rep(1), rep(1), rep(1) })),
 
         s("all", d(1, function(_, parent)
-          local var = parent.snippet.env.POSTFIX_MATCH
+          local var = parent.snippet.env.POSTFIX_MATCH or ""
           return sn(nil, fmt("{}.begin(), {}.end()", { i(1, var), rep(1) }))
         end, {})),
         s("rall", d(1, function(_, parent)
-          local var = parent.snippet.env.POSTFIX_MATCH
+          local var = parent.snippet.env.POSTFIX_MATCH or ""
           return sn(nil, fmt("{}.rbegin(), {}.rend()", { i(1, var), rep(1) }))
         end, {})),
         s("all1", d(1, function(_, parent)
-          local var = parent.snippet.env.POSTFIX_MATCH
+          local var = parent.snippet.env.POSTFIX_MATCH or ""
           return sn(nil, fmt("{}.begin() + 1, {}.end()", { i(1, var), rep(1) }))
         end, {})),
         s("sum", d(1, function(_, parent)
-          local var = parent.snippet.env.POSTFIX_MATCH
+          local var = parent.snippet.env.POSTFIX_MATCH or ""
           return sn(nil, fmt("accumulate({}.begin(), {}.end(), {})", { i(1, var), rep(1), i(2, "0ll") }))
         end, {})),
         s("sum1", d(1, function(_, parent)
-          local var = parent.snippet.env.POSTFIX_MATCH
+          local var = parent.snippet.env.POSTFIX_MATCH or ""
           return sn(nil, fmt("accumulate({}.begin() + 1, {}.end(), {})", { i(1, var), rep(1), i(2, "0ll") }))
         end, {})),
 
@@ -169,7 +161,6 @@ int opy[] = {{{}}};]], {
           end, { 1 }),
         })),
 
-        -- math / number theory (parse snippets)
         ps("qpow", [[
 long long qpow(long long a, long long b) {
     long long t = 1;

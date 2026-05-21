@@ -1,3 +1,10 @@
+local is_windows = package.config:sub(1, 1) == "\\"
+local uv = vim.uv or vim.loop
+local home = vim.fs.normalize((uv.os_homedir and uv.os_homedir()) or vim.fn.expand "~")
+local acm_dir = vim.fs.joinpath(home, "acm")
+local cpp_binary = is_windows and "$(FNOEXT).exe" or "$(FNOEXT)"
+local cpp_runner = is_windows and "./$(FNOEXT).exe" or "./$(FNOEXT)"
+
 return {
   {
     "xeluxee/competitest.nvim",
@@ -49,10 +56,13 @@ return {
       received_files_extension = "cpp",
       received_contests_prompt_extension = false,
       compile_command = {
-        cpp = { exec = "g++", args = { "-std=c++23", "-O2", "-Wall", "$(FNAME)", "-o", "$(FNOEXT)" } },
+        cpp = { exec = "g++", args = { "-std=c++23", "-O2", "-Wall", "$(FNAME)", "-o", cpp_binary } },
       },
-      received_problems_path = "$(HOME)/acm/problems/$(JUDGE)/$(PROBLEM)/$(PROBLEM).$(FEXT)",
-      received_contests_directory = "$(HOME)/acm/contests/$(JUDGE)/$(CONTEST)",
+      run_command = {
+        cpp = { exec = cpp_runner },
+      },
+      received_problems_path = vim.fs.joinpath(acm_dir, "problems", "$(JUDGE)", "$(PROBLEM)", "$(PROBLEM).$(FEXT)"),
+      received_contests_directory = vim.fs.joinpath(acm_dir, "contests", "$(JUDGE)", "$(CONTEST)"),
       received_contests_problems_path = "$(PROBLEM)/$(PROBLEM).$(FEXT)",
       runner_ui = {
         interface = "split",

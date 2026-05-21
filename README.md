@@ -2,7 +2,7 @@
 
 基于 AstroNvim v5 的个人 Neovim 配置。
 
-这套配置主要面向算法竞赛，以及日常的 C++ / Python / Rust 编辑。整体尽量保留 AstroNvim 的默认行为，只对补全、LSP、代码片段、终端工作流和 health 输出做少量定制。
+这套配置面向日常开发和通用文本编辑，兼顾 C++ / Python / Rust 工作流。整体尽量保留 AstroNvim 的默认行为，只对补全、LSP、代码片段、终端工作流和 health 输出做少量定制。
 
 ## 依赖
 
@@ -66,10 +66,9 @@ nvim
 - clangd 和 `clangd_extensions.nvim`
 - 通过 `rustaceanvim` 提供 Rust 支持
 - 通过 Mason 管理 Python 格式化工具
-- 通过 `competitest.nvim` 提供算法竞赛工作流
 - 通过 LuaSnip 提供自定义 C++ 代码片段
 - 自动保存，并保留正常的写入 autocmd
-- shell 跟随 `$SHELL`，不会写死为某个 shell
+- 非 Windows 环境下 shell 跟随 `$SHELL`，不会写死为某个 shell
 - 过滤已知的、无实际影响的 health 提示
 
 ## 快捷键
@@ -87,12 +86,6 @@ Leader 是 `<Space>`。
 | `<Leader>Th` | 打开水平终端 |
 | `<Leader>Tv` | 打开垂直终端 |
 | `<Leader>Tg` | 打开 lazygit |
-| `<Leader>cpr` | 接收 CompetiTest 题目 |
-| `<Leader>cpc` | 接收 CompetiTest 比赛 |
-| `<Leader>cpg` | 接收 CompetiTest 测试样例 |
-| `<Leader>cpt` | 运行 CompetiTest |
-| `<Leader>cpu` | 打开 CompetiTest UI |
-| `<Leader>tt` | 运行 CompetiTest |
 | `<A-k>` / `<A-j>` | 通过 `mini.move` 移动当前行或选区 |
 | `<A-Up>` / `<A-Down>` | `<A-k>` / `<A-j>` 的别名 |
 | `<C-Up>` / `<C-Down>` | 调整窗口高度 |

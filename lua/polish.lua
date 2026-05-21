@@ -1,5 +1,6 @@
 local shell = vim.env.SHELL
-if shell and shell ~= "" and vim.fn.executable(shell) == 1 then
+local is_windows = package.config:sub(1, 1) == "\\"
+if not is_windows and shell and shell ~= "" and vim.fn.executable(shell) == 1 then
   vim.opt.shell = shell
 end
 

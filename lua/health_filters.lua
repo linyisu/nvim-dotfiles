@@ -21,6 +21,7 @@ local function preload_with_health(name, make_proxy)
 end
 
 preload_with_health("mason.health", function(health)
+  -- These are Mason's optional package-manager runtimes, not enabled languages.
   local optional = {
     Composer = true,
     Go = true,
@@ -118,7 +119,8 @@ if not package.loaded["rustaceanvim.health"] then
 
       io.popen = function(command, ...)
         if type(command) == "string" and command:match "codelldb%s+%-%-version$" then
-          return popen(command .. " 2>/dev/null", ...)
+          local null_device = package.config:sub(1, 1) == "\\" and "NUL" or "/dev/null"
+          return popen(command .. " 2>" .. null_device, ...)
         end
 
         return popen(command, ...)

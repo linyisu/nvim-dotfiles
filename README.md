@@ -1,124 +1,92 @@
-# nvim-dotfiles
+# Neovim Configuration
 
-基于 AstroNvim v5 的个人 Neovim 配置。
+这是一套从零配置的 Neovim 配置，不基于任何发行版式框架。配置目标是保持结构清晰、可迁移，并尽量让插件、LSP 等组件在首次打开 Neovim 时自动从 GitHub 或 Mason 下载。
 
-这套配置面向日常开发和通用文本编辑，兼顾 C++ / Python / Rust 工作流。整体尽量保留 AstroNvim 的默认行为，只对补全、LSP、代码片段、终端工作流和 health 输出做少量定制。
+## 系统要求
 
-## 依赖
+### 必须提前安装
 
-- Neovim 0.10 或更新版本
-- Git
-- ripgrep (`rg`)
-- fd
-- Nerd Font，本配置中使用的是 `JetBrainsMono Nerd Font`
-- 可选但推荐安装：`lazygit`、`node`、`python`、`cargo`、`tree-sitter`
+以下软件需要在使用本配置前先安装好：
 
-大部分语言工具会在启动时通过 Mason 自动安装：
+| 依赖 | Windows | Linux | 说明 |
+| --- | --- | --- | --- |
+| Neovim | 必须 | 必须 | 建议使用 Neovim `0.12` 或更新版本。本配置已在 `0.12.2` 上验证。 |
+| Git | 必须 | 必须 | 用于首次自动下载 `lazy.nvim` 和后续插件。 |
+| 网络连接 | 必须 | 必须 | 首次启动需要访问 GitHub；LSP 工具会通过 Mason 下载。 |
 
-- `clangd`
-- `clang-format`
-- `rust-analyzer`
-- `lua-language-server`
-- `json-lsp`
-- `black`
-- `isort`
-- `ruff`
-- `stylua`
-- `tree-sitter-cli`，当系统中没有 `tree-sitter` 命令时安装
+如果缺少 Git，Neovim 仍可启动，但插件管理器无法自动安装，很多功能不会加载。
 
-## 安装
+### 按功能可选安装
 
-先备份已有的 Neovim 配置：
+以下依赖不是启动 Neovim 的必要条件，但会影响对应功能。
 
-```sh
-mv ~/.config/nvim ~/.config/nvim.bak
-mv ~/.local/share/nvim ~/.local/share/nvim.bak
-mv ~/.local/state/nvim ~/.local/state/nvim.bak
-mv ~/.cache/nvim ~/.cache/nvim.bak
-```
+| 功能 | 需要安装 | 说明 |
+| --- | --- | --- |
+| 运行 C/C++ 当前文件 | `g++` 或 `clang++` | 使用 `空格 rr` / `:RunFile` 时需要。LSP 的 `clangd` 不等于 C++ 编译器。 |
+| Linux 系统剪贴板 | `wl-clipboard` 或 `xclip` / `xsel` | Wayland 推荐 `wl-clipboard`；X11 可用 `xclip` 或 `xsel`。没有这些工具时，本配置不会强行启用系统剪贴板。 |
 
-克隆本仓库：
+Windows 下系统剪贴板通常不需要额外安装工具。
 
-```sh
-git clone git@github.com:linyisu/nvim-dotfiles.git ~/.config/nvim
-```
+## 不需要提前安装
 
-如果没有配置 SSH，也可以使用 HTTPS：
+以下内容不需要用户手动提前安装：
 
-```sh
-git clone https://github.com/linyisu/nvim-dotfiles.git ~/.config/nvim
-```
-
-启动 Neovim：
-
-```sh
-nvim
-```
-
-首次启动时，Lazy.nvim 和 Mason 会自动安装缺失的插件与工具。启动完成后，可以用 `:Lazy sync` 和 `:Mason` 检查安装状态。
-
-## 主要功能
-
-- 基于 AstroNvim v5 和 `lazy.nvim` 的插件结构
-- 使用 Tokyonight Moon 主题
-- 使用 `blink.cmp` 作为补全框架，支持 `<Tab>` / `<S-Tab>` 导航
-- Treesitter 高亮和 textobjects
-- clangd 和 `clangd_extensions.nvim`
-- 通过 `rustaceanvim` 提供 Rust 支持
-- 通过 Mason 管理 Python 格式化工具
-- 通过 LuaSnip 提供自定义 C++ 代码片段
-- 自动保存，并保留正常的写入 autocmd
-- 非 Windows 环境下 shell 跟随 `$SHELL`，不会写死为某个 shell
-- 过滤已知的、无实际影响的 health 提示
-
-## 快捷键
-
-Leader 是 `<Space>`。
-
-| 快捷键 | 作用 |
+| 组件 | 安装方式 |
 | --- | --- |
-| `<C-x>` | 下一个 buffer |
-| `<C-z>` | 上一个 buffer |
-| `<Leader>bd` | 选择并关闭 buffer |
-| `<Leader>m` | 打开 zoxide picker |
-| `<Leader>rn` | 通过 LSP 重命名符号 |
-| `<Leader>Tf` | 打开浮动终端 |
-| `<Leader>Th` | 打开水平终端 |
-| `<Leader>Tv` | 打开垂直终端 |
-| `<Leader>Tg` | 打开 lazygit |
-| `<A-k>` / `<A-j>` | 通过 `mini.move` 移动当前行或选区 |
-| `<A-Up>` / `<A-Down>` | `<A-k>` / `<A-j>` 的别名 |
-| `<C-Up>` / `<C-Down>` | 调整窗口高度 |
-| `<C-Left>` / `<C-Right>` | 调整窗口宽度 |
+| Neovim 插件 | 首次启动时由 `lazy.nvim` 自动下载。 |
+| Lua LSP (`lua_ls`) | 由 Mason 自动安装。 |
+| C/C++ LSP (`clangd`) | 由 Mason 自动安装。 |
+| `.clang-format` | 打开 C/C++ 文件时，如果当前 workspace 没有该文件，配置会自动生成默认版本。 |
 
-## 仓库结构
+默认 `.clang-format` 内容为：
+
+```yaml
+BasedOnStyle: Google
+Standard: Latest
+IndentWidth: 4
+ColumnLimit: 120
+AccessModifierOffset: -4
+InsertBraces: true
+```
+
+如果项目已经存在 `.clang-format`，配置不会自动覆盖它。
+
+## 配置目录
+
+根据系统不同，Neovim 配置目录通常为：
+
+| 系统 | 配置目录 |
+| --- | --- |
+| Windows | `%LOCALAPPDATA%\nvim` |
+| Linux | `~/.config/nvim` |
+
+将本仓库内容放入对应目录后，直接启动 `nvim` 即可。
+
+## 首次启动行为
+
+首次启动 Neovim 时会发生以下操作：
+
+1. 如果本地没有 `lazy.nvim`，配置会使用 Git 从 GitHub 克隆它。
+2. `lazy.nvim` 会根据配置下载插件。
+3. 打开 Lua 或 C/C++ 文件时，Mason 会准备对应 LSP 工具。
+4. 打开 C/C++ 文件时，会自动应用 4 空格缩进；如果当前 workspace 没有 `.clang-format`，会自动生成默认配置。
+
+首次安装完成后，建议重启一次 Neovim，让插件和 LSP 状态完全刷新。
+
+## 常用验证命令
+
+在 Neovim 中可以使用以下命令检查环境：
+
+```vim
+:checkhealth
+:checkhealth vim.lsp
+:Mason
+```
+
+C/C++ 单文件运行：
 
 ```text
-init.lua
-lua/
-  community.lua
-  compat.lua
-  health_filters.lua
-  keymaps.lua
-  lazy_setup.lua
-  polish.lua
-  plugins/
+空格 rr
 ```
 
-- `lua/community.lua`：AstroCommunity 导入
-- `lua/lazy_setup.lua`：AstroNvim 和 lazy.nvim 启动配置
-- `lua/plugins/`：各插件的独立配置
-- `lua/keymaps.lua`：AstroCore 之外的用户快捷键
-- `lua/polish.lua`：最后执行的启动设置和自动保存
-- `lua/compat.lua`：当前 Neovim / 插件 API 变化的兼容层
-- `lua/health_filters.lua`：过滤已知的 health 噪音提示
-
-## 维护
-
-常用命令：
-
-```sh
-nvim --headless "+Lazy! sync" +qa
-nvim --headless "+checkhealth" +qa
-find lua -name '*.lua' -exec luac -p {} +
-```
+如果提示找不到编译器，请先安装 `g++` 或 `clang++`，并确保它们在系统 `PATH` 中。

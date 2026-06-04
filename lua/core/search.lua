@@ -21,7 +21,20 @@ local function root()
 end
 
 local function relative(path, base)
-  return vim.fs.normalize(path):sub(#vim.fs.normalize(base) + 2)
+  local relpath = vim.fs.relpath(vim.fs.normalize(base), vim.fs.normalize(path))
+
+  if relpath then
+    return relpath
+  end
+
+  local prefix = vim.fs.normalize(base):gsub("\\", "/")
+  local normalized_path = vim.fs.normalize(path):gsub("\\", "/")
+
+  if prefix:sub(-1) ~= "/" then
+    prefix = prefix .. "/"
+  end
+
+  return normalized_path:sub(#prefix + 1)
 end
 
 local function project_files()
@@ -286,8 +299,6 @@ function M.find_files()
 end
 
 function M.pick_files()
-  require("lazy").load({ plugins = { "mini.nvim" } })
-
   local base, files = project_files()
 
   if #files == 0 then
@@ -312,8 +323,6 @@ function M.pick_files()
 end
 
 function M.pick_grep()
-  require("lazy").load({ plugins = { "mini.nvim" } })
-
   local base, files = project_files()
 
   if #files == 0 then

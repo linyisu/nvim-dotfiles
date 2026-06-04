@@ -1,0 +1,7 @@
+describe("test harness", function()
+  it("loads the Neovim config before running tests without replacing native assert", function()
+    expect.equal(vim.g.mapleader, " ")
+    expect.truthy(package.loaded["config.lazy"])
+    expect.equal(type(assert), "function")
+  end)
+end)

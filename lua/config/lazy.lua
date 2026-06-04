@@ -1,13 +1,13 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-local uv = vim.uv or vim.loop
 
-if not uv.fs_stat(lazypath) then
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
   if vim.fn.executable("git") == 0 then
     vim.api.nvim_echo({
-      { "lazy.nvim bootstrap needs git to download plugins from GitHub.\n", "ErrorMsg" },
-      { "Neovim will keep running with the built-in fallback config.", "WarningMsg" },
+      { "lazy.nvim bootstrap needs Git to download plugins from GitHub.\n", "ErrorMsg" },
+      { "Install Git first, then start Neovim again.", "WarningMsg" },
     }, true, {})
-    return
+    vim.fn.getchar()
+    os.exit(1)
   end
 
   local repo = "https://github.com/folke/lazy.nvim.git"
@@ -24,8 +24,10 @@ if not uv.fs_stat(lazypath) then
     vim.api.nvim_echo({
       { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
       { out, "WarningMsg" },
+      { "\nPress any key to exit..." },
     }, true, {})
-    return
+    vim.fn.getchar()
+    os.exit(1)
   end
 end
 
@@ -33,9 +35,12 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   spec = {
-    { import = "plugins.ui" },
-    { import = "plugins.editor" },
-    { import = "plugins.lsp" },
+    { "LazyVim/LazyVim", import = "lazyvim.plugins" },
+    { import = "plugins" },
+  },
+  defaults = {
+    lazy = false,
+    version = false,
   },
   install = {
     colorscheme = { "tokyonight", "habamax" },
@@ -46,5 +51,17 @@ require("lazy").setup({
   },
   change_detection = {
     notify = false,
+  },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        "gzip",
+        "netrwPlugin",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+      },
+    },
   },
 })

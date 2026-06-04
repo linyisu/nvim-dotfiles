@@ -8,7 +8,7 @@ local function default_font()
   end
 
   if vim.fn.has("win32") == 1 then
-    return "JetBrainsMono NFM:h12"
+    return "JetBrainsMono NF:h12"
   end
 
   if vim.fn.has("mac") == 1 then
@@ -34,8 +34,8 @@ vim.g.neovide_remember_window_size = true
 vim.g.neovide_confirm_quit = true
 vim.g.neovide_hide_mouse_when_typing = true
 
-vim.g.neovide_scroll_animation_length = 0.15
-vim.g.neovide_position_animation_length = 0.08
-vim.g.neovide_cursor_animation_length = 0.08
-vim.g.neovide_cursor_short_animation_length = 0.03
-vim.g.neovide_cursor_trail_size = 0.5
+vim.g.neovide_scroll_animation_length = 0
+vim.g.neovide_position_animation_length = 0
+vim.g.neovide_cursor_animation_length = 0
+vim.g.neovide_cursor_short_animation_length = 0
+vim.g.neovide_cursor_trail_size = 0

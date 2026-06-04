@@ -1,7 +1,60 @@
 local M = {}
+local neovide_motion_restore = nil
+
+local neovide_motion_keys = {
+  "neovide_cursor_animation_length",
+  "neovide_cursor_short_animation_length",
+  "neovide_cursor_trail_size",
+  "neovide_scroll_animation_length",
+  "neovide_position_animation_length",
+}
 
 local function notify(message, level)
   vim.notify(message, level or vim.log.levels.INFO)
+end
+
+function M.disable_neovide_animations()
+  if not vim.g.neovide or neovide_motion_restore then
+    return
+  end
+
+  local previous = {}
+
+  for _, key in ipairs(neovide_motion_keys) do
+    previous[key] = {
+      exists = vim.g[key] ~= nil,
+      value = vim.g[key],
+    }
+    vim.g[key] = 0
+  end
+
+  neovide_motion_restore = previous
+end
+
+function M.restore_neovide_animations()
+  if not neovide_motion_restore then
+    return
+  end
+
+  for key, state in pairs(neovide_motion_restore) do
+    vim.g[key] = state.exists and state.value or nil
+  end
+
+  neovide_motion_restore = nil
+end
+
+function M.disable_buffer_animations(buf)
+  vim.b[buf].snacks_animate = false
+  vim.b[buf].snacks_scroll = false
+end
+
+local function stop_smooth_scroll(win)
+  if not (_G.Snacks and Snacks.animate and Snacks.animate.del) then
+    return
+  end
+
+  pcall(Snacks.animate.del, ("scroll_%d"):format(win))
+  pcall(Snacks.animate.del, ("scroll_repeat_%d"):format(win))
 end
 
 local function mini_files()
@@ -135,7 +188,13 @@ function M.open(path)
     return
   end
 
-  files.open(path, false)
+  local target = path
+
+  if target and target ~= "" then
+    target = vim.fs.normalize(vim.fn.fnamemodify(target, ":p"))
+  end
+
+  files.open(target, false)
 end
 
 function M.open_workspace(path)
@@ -213,6 +272,10 @@ function M.rename()
       return
     end
 
+    if _G.Snacks and Snacks.rename then
+      pcall(Snacks.rename.on_rename_file, old_path, new_path)
+    end
+
     refresh()
   end)
 end
@@ -247,6 +310,27 @@ end
 
 function M.refresh()
   refresh()
+end
+
+function M.move_cursor(buf, step, count)
+  local line_count = vim.api.nvim_buf_line_count(buf)
+
+  if line_count == 0 then
+    return
+  end
+
+  local current = vim.api.nvim_win_get_cursor(0)
+  local raw_target = current[1] - 1 + step * (count or vim.v.count1)
+  local target = (raw_target % line_count) + 1
+  local wrapped = raw_target < 0 or raw_target >= line_count
+  local line = vim.api.nvim_buf_get_lines(buf, target - 1, target, false)[1] or ""
+  local col = math.min(current[2], math.max(#line - 1, 0))
+
+  if wrapped then
+    stop_smooth_scroll(vim.api.nvim_get_current_win())
+  end
+
+  vim.api.nvim_win_set_cursor(0, { target, col })
 end
 
 return M

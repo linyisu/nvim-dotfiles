@@ -1,3 +1,8 @@
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+vim.g.snacks_animate = false
+vim.g.snacks_scroll = false
+
 local opt = vim.opt
 
 opt.number = true
@@ -7,6 +12,7 @@ opt.cursorline = true
 
 opt.expandtab = true
 opt.shiftwidth = 2
+opt.softtabstop = 2
 opt.tabstop = 2
 opt.smartindent = true
 opt.breakindent = true
@@ -14,6 +20,7 @@ opt.breakindent = true
 opt.wrap = false
 opt.scrolloff = 8
 opt.sidescrolloff = 8
+opt.smoothscroll = false
 
 opt.ignorecase = true
 opt.smartcase = true
@@ -37,6 +44,8 @@ end
 
 if vim.fn.has("win32") == 1 or vim.fn.has("mac") == 1 or has_linux_clipboard() then
   opt.clipboard = "unnamedplus"
+else
+  opt.clipboard = ""
 end
 
 opt.undofile = true

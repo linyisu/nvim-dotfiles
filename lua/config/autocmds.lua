@@ -2,6 +2,31 @@ local function augroup(name)
   return vim.api.nvim_create_augroup("user_" .. name, { clear = true })
 end
 
+vim.api.nvim_create_user_command("ClangFormatInit", function(command)
+  require("core.clang_format").write_default({ force = command.bang })
+end, {
+  bang = true,
+  desc = "Create default .clang-format in the current workspace root",
+})
+
+vim.api.nvim_create_user_command("ClangFormatOpen", function()
+  require("core.clang_format").open()
+end, {
+  desc = "Open .clang-format in the current workspace root",
+})
+
+vim.api.nvim_create_user_command("RunFile", function()
+  require("core.run").current_file()
+end, {
+  desc = "Compile and run the current file",
+})
+
+vim.api.nvim_create_user_command("Home", function()
+  require("snacks").dashboard.open()
+end, {
+  desc = "Open the start page",
+})
+
 local c_family_filetypes = {
   c = true,
   cpp = true,
@@ -19,7 +44,6 @@ local function setup_c_family_buffer(buf)
   vim.bo[buf].shiftwidth = 4
   vim.bo[buf].softtabstop = 4
   vim.bo[buf].tabstop = 4
-  require("core.clang_format").ensure_for_buffer(buf)
 end
 
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -98,42 +122,13 @@ vim.api.nvim_create_autocmd("BufEnter", {
   end,
 })
 
-for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-  if vim.api.nvim_buf_is_loaded(buf) then
-    setup_c_family_buffer(buf)
-  end
-end
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = augroup("clang_format_on_attach"),
+  callback = function(event)
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
 
-vim.api.nvim_create_autocmd("VimEnter", {
-  group = augroup("homepage"),
-  callback = function()
-    if vim.fn.argc() ~= 0 then
-      return
+    if client and client.name == "clangd" then
+      setup_c_family_buffer(event.buf)
     end
-
-    if vim.api.nvim_buf_get_name(0) ~= "" or vim.bo.buftype ~= "" then
-      return
-    end
-
-    require("core.home").open()
-  end,
-})
-
-vim.api.nvim_create_autocmd("VimEnter", {
-  group = augroup("open_directory_with_mini_files"),
-  callback = function()
-    if vim.fn.argc() ~= 1 then
-      return
-    end
-
-    local path = vim.fs.normalize(vim.fn.fnamemodify(vim.fn.argv(0), ":p"))
-
-    if vim.fn.isdirectory(path) ~= 1 then
-      return
-    end
-
-    pcall(vim.cmd.bwipeout)
-    vim.cmd.cd(vim.fn.fnameescape(path))
-    require("core.file_explorer").open(path)
   end,
 })

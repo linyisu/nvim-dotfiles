@@ -10,7 +10,6 @@ M.lines = {
   "",
 }
 
-local ensured_roots = {}
 local is_case_insensitive_fs = vim.fn.has("win32") == 1 or vim.fn.has("mac") == 1
 
 local function normalize(path)
@@ -29,21 +28,6 @@ local function is_inside(path, root)
   return normalized_path == normalized_root or normalized_path:sub(1, #normalized_root + 1) == normalized_root .. "/"
 end
 
-local function buffer_root(buf)
-  local name = vim.api.nvim_buf_get_name(buf)
-  local cwd = vim.fn.getcwd()
-
-  if name ~= "" and is_inside(name, cwd) then
-    return cwd
-  end
-
-  if name ~= "" then
-    return vim.fs.dirname(name)
-  end
-
-  return cwd
-end
-
 function M.find(start, stop)
   local dir = start or vim.fn.getcwd()
 
@@ -52,6 +36,10 @@ function M.find(start, stop)
   end
 
   local stop_path = stop and comparable(stop)
+
+  if stop_path and not is_inside(dir, stop) then
+    return nil
+  end
 
   while dir and dir ~= "" do
     local candidate = vim.fs.joinpath(dir, ".clang-format")
@@ -107,25 +95,9 @@ function M.write_default(opts)
   end
 end
 
-function M.ensure_for_buffer(buf)
-  local name = vim.api.nvim_buf_get_name(buf)
-  local start = name ~= "" and vim.fs.dirname(name) or vim.fn.getcwd()
-  local root = buffer_root(buf)
-
-  if M.find(start, root) then
-    return
-  end
-
-  if vim.fn.filewritable(root) ~= 2 then
-    return
-  end
-
-  if ensured_roots[root] then
-    return
-  end
-
-  ensured_roots[root] = true
-  M.write_default({ root = root, quiet = true })
+function M.ensure_for_buffer(_)
+  -- Kept as a no-op for compatibility. Format files should be created manually
+  -- at the project root with :ClangFormatInit or by editing .clang-format.
 end
 
 function M.open()

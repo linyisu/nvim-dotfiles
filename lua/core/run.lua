@@ -5,6 +5,10 @@ local c_filetypes = {
   cpp = true,
 }
 
+local rust_filetypes = {
+  rust = true,
+}
+
 local function notify(message, level)
   vim.notify(message, level or vim.log.levels.INFO)
 end
@@ -68,6 +72,40 @@ local function compile_command(file, exe, filetype)
   }
 end
 
+local function find_upwards(name, start)
+  local dir = start
+
+  if vim.fn.isdirectory(dir) ~= 1 then
+    dir = vim.fs.dirname(dir)
+  end
+
+  while dir and dir ~= "" do
+    local candidate = vim.fs.joinpath(dir, name)
+
+    if vim.uv.fs_stat(candidate) then
+      return candidate
+    end
+
+    local parent = vim.fs.dirname(dir)
+
+    if not parent or parent == dir then
+      return nil
+    end
+
+    dir = parent
+  end
+end
+
+local function cargo_root(file)
+  local manifest = find_upwards("Cargo.toml", vim.fs.dirname(file))
+
+  if not manifest then
+    return nil
+  end
+
+  return vim.fs.dirname(manifest)
+end
+
 local function open_compile_errors(output)
   local lines = vim.split(output, "\n", { plain = true, trimempty = true })
 
@@ -84,16 +122,46 @@ local function open_compile_errors(output)
   notify("Compile failed", vim.log.levels.ERROR)
 end
 
-local function open_terminal(exe, cwd)
+local function open_terminal(command, cwd)
   vim.cmd("botright 14split")
   vim.cmd.enew()
-  vim.bo.bufhidden = "wipe"
-  vim.bo.filetype = "terminal"
+  local buf = vim.api.nvim_get_current_buf()
 
-  vim.fn.termopen({ exe }, {
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].filetype = "run-terminal"
+
+  vim.fn.termopen(command, {
     cwd = cwd,
   })
-  vim.cmd.startinsert()
+
+  vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], {
+    buffer = buf,
+    desc = "Leave terminal input mode",
+  })
+  vim.keymap.set("n", "q", "<cmd>close<cr>", {
+    buffer = buf,
+    silent = true,
+    desc = "Close run terminal",
+  })
+end
+
+local function run_rust_project(file)
+  local cargo = first_executable({ "cargo" })
+
+  if not cargo then
+    notify("No Rust toolchain found. Install cargo.", vim.log.levels.ERROR)
+    return
+  end
+
+  local root = cargo_root(file)
+
+  if not root then
+    notify("No Cargo.toml found for this Rust file", vim.log.levels.WARN)
+    return
+  end
+
+  notify("Running Rust project...")
+  open_terminal({ cargo, "run" }, root)
 end
 
 function M.current_file()
@@ -106,13 +174,18 @@ function M.current_file()
 
   local filetype = vim.bo.filetype
 
-  if not c_filetypes[filetype] then
-    notify("RunFile currently supports C and C++ files", vim.log.levels.WARN)
+  if not c_filetypes[filetype] and not rust_filetypes[filetype] then
+    notify("RunFile currently supports C, C++, and Rust project files", vim.log.levels.WARN)
     return
   end
 
   if vim.bo.modified then
     vim.cmd.write()
+  end
+
+  if rust_filetypes[filetype] then
+    run_rust_project(file)
+    return
   end
 
   local exe = output_path(file)
@@ -145,7 +218,7 @@ function M.current_file()
         })
       end
 
-      open_terminal(exe, cwd)
+      open_terminal({ exe }, cwd)
     end)
   end)
 end
